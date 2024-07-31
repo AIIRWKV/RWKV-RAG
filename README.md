@@ -133,12 +133,12 @@ stateDiagram-v2
 
 ## Download Models
 
-Please download baseline models from https://huggingface.co/BlinkDL
-Please download state for chatbot from: https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
-There are several options for embedding models and rerank models:
-Please download RWKV embedding model from :https://huggingface.co/yueyulin/rwkv6_emb_4k_base
-Please download BGEM3 embedding models from: https://huggingface.co/BAAI/bge-m3
-Please download BGEM3 reranker from: https://huggingface.co/BAAI/bge-reranker-v2-m3
+* Please download baseline models from https://huggingface.co/BlinkDL
+* Please download state for chatbot from: https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
+* There are several options for embedding models and rerank models:
+* Please download RWKV embedding model from :https://huggingface.co/yueyulin/rwkv6_emb_4k_base
+* Please download BGEM3 embedding models from: https://huggingface.co/BAAI/bge-m3
+* Please download BGEM3 reranker from: https://huggingface.co/BAAI/bge-reranker-v2-m3
 
 Please feel free to chang your own embedding an reranker from config,yaml. Currently, BGEM3 is an ideal option; however, RWKV embedding models and reranker with better performance is coming soon.
 
