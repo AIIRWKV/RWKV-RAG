@@ -98,6 +98,18 @@ stateDiagram-v2
 
 # Details of implementation
 
+## Download Models
+
+Please download baseline models from https://huggingface.co/BlinkDL
+Please download state for chatbot from: https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
+There are several options for embedding models and rerank models:
+Please download RWKV embedding model from :https://huggingface.co/yueyulin/rwkv6_emb_4k_base
+Please download BGEM3 embedding models from: https://huggingface.co/BAAI/bge-m3
+Please download BGEM3 reranker from: https://huggingface.co/BAAI/bge-reranker-v2-m3
+
+Please feel free to chang your own embedding an reranker from config,yaml. Currently, BGEM3 is an ideal option; however, RWKV embedding models and reranker with better performance is coming soon.
+
+
 The following part will describe the implementation which will update in the future since more features will be added. However the basic design will keep the same.
 
 ## Service starter
@@ -216,8 +228,5 @@ streamlit run client.py
 - pytorch_lightning必须使用1.9.5版本
 - 现版本在使用微调服务时，可能会再次加载基座模型，因此要合理分配显卡，避免因显存不够而报错
 
-# Futrue Direction
-
-The multi-modal framework, primarily focused on ASR and Vision, will be available online soon. Additionally, GraphRAG and prompt optimization are also forthcoming.
 
 
