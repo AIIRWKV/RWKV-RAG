@@ -1,6 +1,6 @@
 # RAG in one click 
 
-This is an one click RAG system for RWKV named "AIIRWKV". AIIRWKV employed asynchronus processing, which allows maintainence and update of services to be done independently. This system design enables minimal encapsulation with high extensibility. 
+This is a one click RAG system for RWKV named "AIIRWKV". AIIRWKV employed asynchronus processing, which allows maintainence and update of services to be done independently. This system design enables minimal encapsulation with high extensibility. 
 Moreover, AIIRWKV has integrated one-click tools for StateTune, an extremely efficient fine-tuning method exclusive to RWKV. Additionally, it supports Lora and Pissa, providing convenient PEFT (Parameter-Efficient Fine-Tuning) solutions for users to tackle various downstream tasks.  
 
 
@@ -10,9 +10,9 @@ Even the minimal RAG system involves several sub-systems and these systems may i
 
 Every component must be pluggable and easy to scale. Which means RPC shouldn't be hard-wired means like TCP/InProc/InterProcess, etc.
 
-The best design pattern is a pub-sub model that every component connects to a broker(or proxy) to send requests and receive responses. Generally heavy weight message queue like RabbitMQ, RocketMQ is used to ensure efficiency and reliability. However a Message Queue service is still another monster to administrate and maintain. 
+The best design pattern is a pub-sub model that every component connects to a broker(or proxy) to send requests and receive responses. Generally heavy-weight message queue like RabbitMQ, RocketMQ is used to ensure efficiency and reliability. However, a Message Queue service is still another monster to administrate and maintain. 
 
-Here the new design is to use a broker free queue library ZeroMQ ![alt text](https://zeromq.org/images/logo.gif) as a queue service. 
+Here the new design is to use a broker free queue library ZeroMQ as a queue service. 
 
 Thanks to ZeroMQ's reliable and high performence implementation, this framework can scale from single resource restricted node to multinodes huge system.
 
