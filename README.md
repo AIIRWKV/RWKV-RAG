@@ -110,7 +110,7 @@ Please feel free to chang your own embedding an reranker from config,yaml. Curre
 The following part will describe the implementation which will update in the future since more features will be added. However the basic design will keep the same.
 
 
-# Qick Start
+# Quick Start
 
 ## Requirement
 
