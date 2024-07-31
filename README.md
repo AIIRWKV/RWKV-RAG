@@ -104,7 +104,7 @@ end note
 * Please download BGEM3 embedding models from: https://huggingface.co/BAAI/bge-m3
 * Please download BGEM3 reranker from: https://huggingface.co/BAAI/bge-reranker-v2-m3
 
-Please feel free to chang your own embedding an reranker from config,yaml. Currently, BGEM3 is an ideal option; however, RWKV embedding models and reranker with better performance is coming soon.
+Please feel free to chang your own embedding and reranker on config,yaml. Currently, BGEM3 is an ideal option; however, RWKV embedding models and reranker with better performance are coming soon.
 
 
 The following part will describe the implementation which will update in the future since more features will be added. However the basic design will keep the same.
