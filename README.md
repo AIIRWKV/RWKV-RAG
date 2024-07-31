@@ -166,7 +166,7 @@ Open the url that provided by streamlit in the browser
 - PyTorch Lightning must use version 1.9.5.
 - The current version, when using the fine-tuning feature, will load the baseline model again, so it is necessary to allocate GPU memory reasonably to avoid errors due to insufficient VRAM.
 
-# Hankbooks:
+# Handbooks:
 
 ## Manage Vector Database:
 
