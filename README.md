@@ -147,7 +147,7 @@ Embedding, reranking, and generating text.
 
 ### Tuning Service
 
-The default value can be used for 7b, does not to be modified.
+The default value can be used for rwkv6_1.6b.
 
 ## Start Services
 ```shell
