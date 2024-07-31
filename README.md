@@ -1,6 +1,6 @@
-# All in one RAG system
+# RAG in one click 
 
-This is an all in RAG system for RWKV named "AIIRWKV". AIIRWKV employed asynchronus processing, which allows maintainence and update of services to be done independently. This system design enables minimal encapsulation with high extensibility. 
+This is an one click RAG system for RWKV named "AIIRWKV". AIIRWKV employed asynchronus processing, which allows maintainence and update of services to be done independently. This system design enables minimal encapsulation with high extensibility. 
 Moreover, AIIRWKV has integrated one-click tools for StateTune, an extremely efficient fine-tuning method exclusive to RWKV. Additionally, it supports Lora and Pissa, providing convenient PEFT (Parameter-Efficient Fine-Tuning) solutions for users to tackle various downstream tasks.  
 
 
@@ -119,7 +119,7 @@ Please Install the dependecies in the requirement.txt:
 pip install -r requirement.txt 
 ```
 The following is the recommendation of VRAM for RWKVs in diffrent parameters:
-| Parameter | VRAM |
+| SIZE | VRAM |
 |----------|----------|
 | 1.6b   | 4G   |
 | 3b   | 7.5G   |
@@ -146,7 +146,8 @@ Embedding, reranking, and generating text.
 - sqlite_db_path: sqlight db path
 
 ### Tuning Service
-The default value can be used, does not to be modified.
+
+The default value can be used for 7b, does not to be modified.
 
 ## Start Services
 ```shell
@@ -163,6 +164,20 @@ streamlit run client.py
 - PyTorch Lightning must use version 1.9.5.
 - The current version, when using the fine-tuning feature, will load the baseline model again, so it is necessary to allocate GPU memory reasonably to avoid errors due to insufficient VRAM.
 
+# Hankbooks:
+
+## Fine-Tune RWKV models in one click:
+
+### Setting-up fine-tune Parameters:
+
+VRAM requirement for fine-tuning RWKV models with 1024 ctx.
+| Size      | fp16       | int8       | nf4       |
+|---------------|------------|------------|-----------|
+| RWKV6-1.6B    | 5.8GB GPU  | 4.5GB GPU  | 3.9GB GPU |
+| RWKV6-3B      | 8.7GB GPU  | 6.2GB GPU  | 4.9GB GPU |
+| RWKV6-7B      | 17.8GB GPU | 11.9GB GPU | 8.5GB GPU |
+
+for detail explaintions of other parameters and hyperparameters, please refer to the official tutorial at : https://rwkv.cn/RWKV-Fine-Tuning/State-Tuning
 # Futrue Direction
 
 The multi-modal framework, primarily focused on ASR and Vision, will be available online soon. Additionally, GraphRAG and prompt optimization are also forthcoming.
