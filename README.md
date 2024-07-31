@@ -160,8 +160,30 @@ streamlit run client.py
 ```
 Open the url that provided by streamlit in the browser,you will see the flowing interface.
 
-### Knowledge Base Interface
-![image](https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86.png #pic_center =600x600)
+### Knowledge Repository
+
+<div style="width: 35%; height: auto;text-align:center">
+  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86.png" alt="knowledge manager" >
+</div>
+
+### Adding Text to the Knowledge Repository
+
+<div style="width: 35%; height: auto;text-align:center">
+  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E5%85%A5%E5%BA%93.png" alt="knowledge manager" >
+</div>
+
+### fine-tuning
+
+<div style="width: 35%; height: auto;text-align:center">
+  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E6%A8%A1%E5%9E%8B%E5%BE%AE%E8%B0%83.png" alt="knowledge manager" >
+</div>
+
+
+### Q&A
+
+<div style="width: 35%; height: auto;text-align:center">
+  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E9%97%AE%E7%AD%94.png" alt="knowledge manager" >
+</div>
 
 ## Notes
 - It is recommended to use Python 3.10 or Python 3.9.
