@@ -55,6 +55,39 @@ Thanks to ZeroMQ's reliable and high performence implementation, this framework 
 
 The new design looks like:
 ```mermaid
+sequenceDiagram 
+    box indexer
+        actor DocumentProvidor
+        participant DocumentExtractor
+        participant DocumentIndexer
+    end
+    box query
+        actor EndUser
+        participant RAGGenerator
+    end
+    
+    DocumentProvidor->>DocumentExtractor: 1.0 Extract contents from documents
+    DocumentExtractor->>DocumentIndexer:1.1 Index contents and store them
+    EndUser->>DocumentIndexer: 2.0 Find the most relevant document from indexed documents
+    activate DocumentIndexer
+    DocumentIndexer->>EndUser: 2.1 return the most relevant document from indexed documents
+    deactivate DocumentIndexer
+    EndUser->>RAGGenerator: 2.2 Generate answer acording the provided document and query
+    activate RAGGenerator
+    RAGGenerator->>EndUser: 2.3 Return generated answer
+    deactivate RAGGenerator
+```
+
+Every component must be pluggable and easy to scale. Which means RPC shouldn't be hard-wired means like TCP/InProc/InterProcess, etc.
+
+The best design pattern is a pub-sub model that every component connects to a broker(or proxy) to send requests and receive responses. Generally heavy weight message queue like RabbitMQ, RocketMQ is used to ensure efficiency and reliability. However a Message Queue service is still another monster to administrate and maintain. 
+
+Here the new design is to use a broker free queue library ZeroMQ ![alt text](https://zeromq.org/images/logo.gif) as a queue service. 
+
+Thanks to ZeroMQ's reliable and high performence implementation, this framework can scale from single resource restricted node to multinodes huge system.
+
+The new design looks like:
+```mermaid
 stateDiagram-v2
     Client
     state Client{
@@ -100,12 +133,12 @@ stateDiagram-v2
 
 ## Download Models
 
-Please download baseline models from https://huggingface.co/BlinkDL
-Please download state for chatbot from: https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
-There are several options for embedding models and rerank models:
-Please download RWKV embedding model from :https://huggingface.co/yueyulin/rwkv6_emb_4k_base
-Please download BGEM3 embedding models from: https://huggingface.co/BAAI/bge-m3
-Please download BGEM3 reranker from: https://huggingface.co/BAAI/bge-reranker-v2-m3
+* Please download baseline models from https://huggingface.co/BlinkDL
+* Please download state for chatbot from: https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
+* There are several options for embedding models and rerank models:
+* Please download RWKV embedding model from :https://huggingface.co/yueyulin/rwkv6_emb_4k_base
+* Please download BGEM3 embedding models from: https://huggingface.co/BAAI/bge-m3
+* Please download BGEM3 reranker from: https://huggingface.co/BAAI/bge-reranker-v2-m3
 
 Please feel free to chang your own embedding an reranker from config,yaml. Currently, BGEM3 is an ideal option; however, RWKV embedding models and reranker with better performance is coming soon.
 
@@ -114,7 +147,6 @@ The following part will describe the implementation which will update in the fut
 
 ## Service starter
 
-The service starter(src/services/service_starter.py) is the entry to start all backend services. This script will use a yaml configuration file. By default it's using resouces/service.yml. 
 
 Currently three services are implemented:
 
@@ -139,7 +171,7 @@ note right of LLM_Service
     . generate_text generate text according contexts.
 
     All three models share the same RWKV_V6 base model 
-    with different Lora to provide different functions.
+    with different States to provide different functions.
 end note
 
 TuningClient
@@ -164,8 +196,9 @@ TuningFrontEnd --> TuningClient
 TuningService --> TuningBackend
 TuningBackend --> TuningService
 note right of TuningService
-CacheService utilizes SQLite as local cache.
-So there are several readers and only one writer process.
+Tuning Services is consisted of two blocks:
+. J2B that prepares rawdata into tranning format.
+. Tuning that helps user to finetune model using Lora,Pissa or State-Tune.
 end note
 
 
@@ -187,6 +220,8 @@ note right of IndexService
 IndexService provide two functions:
 . Index the texts. In this function, Index Service will call LLM_Client to get embeddings and store them into chromaDB
 . Search documents according query.
+. Several function for VDB management.
+
 end note
 
 ```
