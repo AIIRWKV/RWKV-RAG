@@ -1,0 +1,46 @@
+llm:
+  enabled: true
+  service_module: llm_service
+  front_end:
+    host: localhost
+    protocol: tcp
+    port: 7781
+  back_end:
+    host: localhost
+    protocol: tcp
+    port: 7782
+  num_workers: 1
+  spawn_method: spawn
+  base_model_file: /home/rwkv/Peter/model/base/RWKV-x060-World-7B-v2.1-20240507-ctx4096.pth
+  bgem3_path: /home/rwkv/Peter/model/bi/bge-m31
+  rerank_path: /home/rwkv/Peter/model/bi/BAAIbge-reranker-v2-m3
+  state_path: /home/rwkv/Peter/model/state/qa/rwkv-2.pth
+  device: cuda:3
+index:
+  enabled: true
+  service_module: index_service
+  front_end:
+    host: localhost
+    protocol: tcp
+    port: 7783
+  back_end:
+    host: localhost
+    protocol: tcp
+    port: 7784
+  chroma_path: /home/rwkv/Peter/RaqQ-master/src/services/chroma
+  chroma_port: 9999
+  chroma_host: localhost
+  sqlite_db_path: /home/rwkv/Peter/RaqQ-master/src/services/chroma/files_services.db
+  num_workers: 4
+  llm_front_end_url: tcp://localhost:7781
+tuning:
+  enabled: true
+  service_module: tuning_service
+  front_end:
+    host: localhost
+    protocol: tcp
+    port: 7787
+  back_end:
+    host: localhost
+    protocol: tcp
+    port: 7788
