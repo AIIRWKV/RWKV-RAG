@@ -233,5 +233,5 @@ The multi-modal framework, primarily focused on ASR and Vision, will be availabl
 
 # Acknowledgement
 - All RWKV tuning service is adapted from [J.L](https://github.com/JL-er/RWKV-PEFT)
-- All RWKV models is from [Bo Peng](https://github.com/BlinkDL/RWKV-LM)
+- All RWKV models is from [BlinkDL](https://github.com/BlinkDL/RWKV-LM)
 - Authors: [YYnil](https://github.com/yynil) ; [Ojiyum](https://github.com/Ojiyumm) ;  [LonghuaLiu](https://github.com/Liu3420175)
