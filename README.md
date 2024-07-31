@@ -220,6 +220,8 @@ note right of IndexService
 IndexService provide two functions:
 . Index the texts. In this function, Index Service will call LLM_Client to get embeddings and store them into chromaDB
 . Search documents according query.
+. Several function for VDB management.
+
 end note
 
 ```
