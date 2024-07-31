@@ -158,7 +158,7 @@ python3 service.py
 ```shell
 streamlit run client.py
 ```
-Open the url that provided by streamlit in the browser,you will see the flowing interface.
+Open the url that provided by streamlit in the browser
 
 
 ## Notes
