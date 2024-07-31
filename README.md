@@ -142,7 +142,7 @@ note right of LLM_Service
     with different Lora to provide different functions.
 end note
 
-CacheClient
+TuningClient
 Cache_Proxy
 state Cache_Proxy{
     CacheFrontEnd
@@ -159,8 +159,8 @@ state Cache_Proxy{
         CacheWriterBackend
     }
 }
-CacheClient --> CacheFrontEnd
-CacheFrontEnd --> CacheClient
+TuningClient --> CacheFrontEnd
+CacheFrontEnd --> TuningClient
 CacheService --> CacheBackend
 CacheBackend --> CacheService
 note right of CacheService
