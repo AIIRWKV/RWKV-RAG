@@ -170,7 +170,21 @@ Open the url that provided by streamlit in the browser,you will see the flowing 
 
 # Hankbooks:
 
+## Manage Vector Database:
+
+This UI supports VDB Collection search，collection creation and deletion, content management of collection.
+
+## Building knowledgebase
+
+This UI supports three different methods to Index contents into knowledgebase: Hand-typing, uploading from local computer, upload from local server.
+AIIRWKV also supports internet search to index real-time data from internet into knowledgebase. 
+User can choose chunk size and chunk overlap on their own according to vairous situation.
+
 ## Fine-Tune RWKV models in one click:
+
+### WanDB
+Please register WanDB to monitor the status, especailly loss curve, of fine-tuning process.
+A task bar that tracks fine-tuning process is displayed at backend terminal.
 
 ### Setting-up fine-tune Parameters:
 
@@ -182,11 +196,20 @@ VRAM requirement for fine-tuning RWKV models with 1024 ctx.
 | RWKV6-3B      | 8.7GB GPU  | 6.2GB GPU  | 4.9GB GPU |
 | RWKV6-7B      | 17.8GB GPU | 11.9GB GPU | 8.5GB GPU |
 
-for detail explaintions of other parameters and hyperparameters, please refer to the official tutorial at : https://rwkv.cn/RWKV-Fine-Tuning/State-Tuning
+For detail explaintions of other parameters and hyperparameters, please refer to the official tutorial at : https://rwkv.cn/RWKV-Fine-Tuning/State-Tuning
+
+## RAG CHATBOT
+
+Please retrieve the most relevant information from the knowledgebase, then ask questions regarding those information. 
+User can modify the basemodel and state dynamically on the UI.
+AIIRWKV is a chatbot that can deliever precise answers based on all the information from last 6 round of conversation.
+User can always change states for different downstream tasks.
+
 # Futrue Direction
 
 The multi-modal framework, primarily focused on ASR and Vision, will be available online soon. Additionally, GraphRAG and prompt optimization are also forthcoming.
 
 # Acknowledgement
-- Our RWKV tuning service is adapted from [RWKV-PEFT](https://github.com/JL-er/RWKV-PEFT)
-- Our LLM service is adapted from [RWKV-LM](https://github.com/BlinkDL/RWKV-LM)
+- All RWKV tuning service is adapted from [J.L](https://github.com/JL-er/RWKV-PEFT)
+- All RWKV models is from [Bo Peng](https://github.com/BlinkDL/RWKV-LM)
+- Authors: [YYnil](https://github.com/yynil) ; [Ojiyum](https://github.com/Ojiyumm) ;  [LonghuaLiu](https://github.com/Liu3420175)
