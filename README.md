@@ -142,32 +142,30 @@ note right of LLM_Service
     with different Lora to provide different functions.
 end note
 
-
-
-TunningClient
-Tunning_Proxy
-state Tunning_Proxy{
-    TunningFrontEnd
-    state TunningFrontEnd{ 
-        Json2BindxFrontEnd
-        Fine_tuningFrontEnd
+CacheClient
+Cache_Proxy
+state Cache_Proxy{
+    CacheFrontEnd
+    state CacheFrontEnd{
+        CacheReaderFrontEnd
+        CacheWriterFrontEnd
     }
-   TunningFrontEnd --> TunningRouter 
-    TunningRouter -->  TunningFrontEnd
-    TunningRouter --> TunningBackend
-    TunningBackend
-    state TunningBackend{
-        Json2BindexBackend
-        Fine_tuningBackend
+    CacheFrontEnd --> CacheRouter 
+    CacheRouter -->  CacheFrontEnd
+    CacheRouter --> CacheBackend
+    CacheBackend
+    state CacheBackend{
+        CacheReaderBackend
+        CacheWriterBackend
     }
 }
-TunningClient --> TunningFrontEnd
-TunningFrontEnd --> TunningClient
-TunningService --> TunningBackend
-TunningBackend --> TunningService
+CacheClient --> CacheFrontEnd
+CacheFrontEnd --> CacheClient
+CacheService --> CacheBackend
+CacheBackend --> CacheService
 note right of CacheService
-Json2Bindex prepares raw data into traning formate.
-Three Fine-tuning method for models with one -click.
+CacheService utilizes SQLite as local cache.
+So there are several readers and only one writer process.
 end note
 
 
