@@ -55,6 +55,39 @@ Thanks to ZeroMQ's reliable and high performence implementation, this framework 
 
 The new design looks like:
 ```mermaid
+sequenceDiagram 
+    box indexer
+        actor DocumentProvidor
+        participant DocumentExtractor
+        participant DocumentIndexer
+    end
+    box query
+        actor EndUser
+        participant RAGGenerator
+    end
+    
+    DocumentProvidor->>DocumentExtractor: 1.0 Extract contents from documents
+    DocumentExtractor->>DocumentIndexer:1.1 Index contents and store them
+    EndUser->>DocumentIndexer: 2.0 Find the most relevant document from indexed documents
+    activate DocumentIndexer
+    DocumentIndexer->>EndUser: 2.1 return the most relevant document from indexed documents
+    deactivate DocumentIndexer
+    EndUser->>RAGGenerator: 2.2 Generate answer acording the provided document and query
+    activate RAGGenerator
+    RAGGenerator->>EndUser: 2.3 Return generated answer
+    deactivate RAGGenerator
+```
+
+Every component must be pluggable and easy to scale. Which means RPC shouldn't be hard-wired means like TCP/InProc/InterProcess, etc.
+
+The best design pattern is a pub-sub model that every component connects to a broker(or proxy) to send requests and receive responses. Generally heavy weight message queue like RabbitMQ, RocketMQ is used to ensure efficiency and reliability. However a Message Queue service is still another monster to administrate and maintain. 
+
+Here the new design is to use a broker free queue library ZeroMQ ![alt text](https://zeromq.org/images/logo.gif) as a queue service. 
+
+Thanks to ZeroMQ's reliable and high performence implementation, this framework can scale from single resource restricted node to multinodes huge system.
+
+The new design looks like:
+```mermaid
 stateDiagram-v2
     Client
     state Client{
