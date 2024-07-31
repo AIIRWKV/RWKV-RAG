@@ -158,6 +158,10 @@ python3 service.py
 ```shell
 streamlit run client.py
 ```
+Open the url that provided by streamlit in the browser,you will see the flowing interface.
+
+### Knowledge Base Interface
+![image](https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86.png #pic_center =600x600)
 
 ## Notes
 - It is recommended to use Python 3.10 or Python 3.9.
@@ -171,6 +175,7 @@ streamlit run client.py
 ### Setting-up fine-tune Parameters:
 
 VRAM requirement for fine-tuning RWKV models with 1024 ctx.
+
 | Size      | fp16       | int8       | nf4       |
 |---------------|------------|------------|-----------|
 | RWKV6-1.6B    | 5.8GB GPU  | 4.5GB GPU  | 3.9GB GPU |
