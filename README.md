@@ -112,6 +112,23 @@ The following part will describe the implementation which will update in the fut
 
 # Qick Start
 
+## Requirement
+
+Please Install the dependecies in the requirement.txt:
+```shell
+pip install -r requirement.txt 
+```
+The following is the recommendation of VRAM for RWKVs in diffrent parameters:
+| Parameter | VRAM |
+|----------|----------|
+| 1.6b   | 4G   |
+| 3b   | 7.5G   |
+| 7b   | 18G |
+|12b   | 24G|
+|14b |30G|
+
+
+
 ## Modifying Configuration
 You can control the activation or deactivation of all services through the configuration file ```ragq.yml```. By default, all services are enabled. Before use, you need to modify the following configuration items for some services.
 
