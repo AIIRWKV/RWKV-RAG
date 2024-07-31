@@ -143,27 +143,27 @@ note right of LLM_Service
 end note
 
 TuningClient
-Cache_Proxy
-state Cache_Proxy{
-    CacheFrontEnd
-    state CacheFrontEnd{
+Tuning_Proxy
+state Tuning_Proxy{
+    TuningFrontEnd
+    state TuningFrontEnd{
         CacheReaderFrontEnd
         CacheWriterFrontEnd
     }
-    CacheFrontEnd --> CacheRouter 
+    TuningFrontEnd --> CacheRouter 
     CacheRouter -->  CacheFrontEnd
     CacheRouter --> CacheBackend
-    CacheBackend
-    state CacheBackend{
+    TuningBackend
+    state TuningBackend{
         CacheReaderBackend
         CacheWriterBackend
     }
 }
-TuningClient --> CacheFrontEnd
-CacheFrontEnd --> TuningClient
-CacheService --> CacheBackend
-CacheBackend --> CacheService
-note right of CacheService
+TuningClient --> TuningFrontEnd
+TuningFrontEnd --> TuningClient
+TuningService --> TuningBackend
+TuningBackend --> TuningService
+note right of TuningService
 CacheService utilizes SQLite as local cache.
 So there are several readers and only one writer process.
 end note
