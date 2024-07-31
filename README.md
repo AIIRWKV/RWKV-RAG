@@ -2,6 +2,7 @@
 
 This is an all in RAG system for RWKV named "AIIRWKV". AIIRWKV employed asynchronus processing, which allows maintainence and update of services to be done independently. This system design enables minimal encapsulation with high extensibility. 
 Moreover, AIIRWKV has integrated one-click tools for StateTune, an extremely efficient fine-tuning method exclusive to RWKV. Additionally, it supports Lora and Pissa, providing convenient PEFT (Parameter-Efficient Fine-Tuning) solutions for users to tackle various downstream tasks.  
+
 A RAG system consists of several parts, in general there are following minimal parts:
  
  - documents extracter:
@@ -177,5 +178,10 @@ IndexService provide two functions:
 end note
 
 ```
+
+
+# Futrue Direction
+
+The multi-modal framework, primarily focused on ASR and Vision, will be available online soon. Additionally, GraphRAG and prompt optimization are also forthcoming.
 
 
