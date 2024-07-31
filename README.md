@@ -166,9 +166,9 @@ Open the url that provided by streamlit in the browser
 - PyTorch Lightning must use version 1.9.5.
 - The current version, when using the fine-tuning feature, will load the baseline model again, so it is necessary to allocate GPU memory reasonably to avoid errors due to insufficient VRAM.
 
-# Handbooks:
+# Handbooks
 
-## Manage Vector Database:
+## Manage Vector Database
 
 This UI supports VDB Collection search，collection creation and deletion, content management of collection.
 
@@ -187,13 +187,13 @@ User can choose chunk size and chunk overlap on their own according to vairous s
 </div>
 
 
-## Fine-Tune RWKV models in one click:
+## Fine-Tune RWKV models in one click
 
 ### WanDB
 Please register WanDB to monitor the status, especailly loss curve, of fine-tuning process.
 A task bar that tracks fine-tuning process is displayed at backend terminal.
 
-### Setting-up fine-tune Parameters:
+### Setting-up fine-tune Parameters
 
 VRAM requirement for fine-tuning RWKV models with 1024 ctx.
 
@@ -220,7 +220,7 @@ User can always change states for different downstream tasks.
   <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E9%97%AE%E7%AD%94.png" alt="knowledge manager" >
 </div>
 
-# Futrue Direction
+# Future Direction
 
 The multi-modal framework, primarily focused on ASR and Vision, will be available online soon. Additionally, GraphRAG and prompt optimization are also forthcoming.
 
