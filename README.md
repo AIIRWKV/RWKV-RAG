@@ -198,7 +198,7 @@ end note
 
 ### LLM Service
 LLM服务，主要用来做Embedding, rerank和生成文本
- - base_model_file: RWKV基座模型地址，参考 https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B
+ - base_model_file: RWKV基座模型地址，参考 [RWKV基模下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B)
  - bgem3_path: Embedding模型地址，推荐使用bge-m31
  - rerank_path: Rerank模型地址，推荐使用BAAIbge-reranker-v2-m3
  - state_path: 模型记忆状态地址，是通过RWKV state微调后生成的模型
@@ -216,7 +216,6 @@ RWKV微调服务，可使用默认值
 ```shell
 python3 service.py 
 ```
-如果
 
 ## 启动客户端
 ```shell
@@ -230,3 +229,6 @@ streamlit run client.py
 
 
 
+# Acknowledgement
+- Our RWKV tuning service is adapted from [RWKV-PEFT](https://github.com/JL-er/RWKV-PEFT)
+- Our LLM service is adapted from [RWKV-LM](https://github.com/BlinkDL/RWKV-LM)
