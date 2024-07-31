@@ -147,7 +147,6 @@ The following part will describe the implementation which will update in the fut
 
 ## Service starter
 
-The service starter(src/services/service_starter.py) is the entry to start all backend services. This script will use a yaml configuration file. By default it's using resouces/service.yml. 
 
 Currently three services are implemented:
 
