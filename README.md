@@ -193,39 +193,39 @@ end note
 
 # Qick Start
 
-## 修改配置文件
-可通过配置文件ragq.yml来控制各个服务的开启或者关闭，默认全部开启。在使用前，需要修改以下服务的一些配置项
+## Modifying Configuration
+You can control the activation or deactivation of all services through the configuration file ```ragq.yml```. By default, all services are enabled. Before use, you need to modify the following configuration items for some services.
 
 ### LLM Service
-LLM服务，主要用来做Embedding, rerank和生成文本
- - base_model_file: RWKV基座模型地址，参考 [RWKV基模下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B)
- - bgem3_path: Embedding模型地址，推荐使用bge-m31
+Embedding, reranking, and generating text.
+- base_model_file: RWKV baseline models path， Refer to [RWKV基模下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B)
+ - bgem3_path: Embedding model path，推荐使用bge-m31
  - rerank_path: Rerank模型地址，推荐使用BAAIbge-reranker-v2-m3
  - state_path: 模型记忆状态地址，是通过RWKV state微调后生成的模型
 
 ### Index Service
-- chroma_db_path: ChromaDB数据库地址
+- chroma_db_path: ChromaDB
 - chroma_port: ChromaDB端口
 - chroma_host: ChromaDB主机地址
 - sqlite_db_path: SQLite数据库地址
 
 ### Tuning Service
-RWKV微调服务，可使用默认值
+The default value can be used, does not to be modified.
 
-## 启动服务端
+## Start Services
 ```shell
 python3 service.py 
 ```
 
-## 启动客户端
+## Start Client
 ```shell
 streamlit run client.py
 ```
 
-## 注意事项
-- python推荐使用python3.10或python3.9
-- pytorch_lightning必须使用1.9.5版本
-- 现版本在使用微调服务时，可能会再次加载基座模型，因此要合理分配显卡，避免因显存不够而报错
+## Notes
+- It is recommended to use Python 3.10 or Python 3.9.
+- PyTorch Lightning must use version 1.9.5.
+- The current version, when using the fine-tuning feature, will load the baseline model again, so it is necessary to allocate GPU memory reasonably to avoid errors due to insufficient VRAM.
 
 
 
