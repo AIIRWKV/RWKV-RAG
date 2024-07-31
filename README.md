@@ -172,7 +172,7 @@ note right of LLM_Service
     . generate_text generate text according contexts.
 
     All three models share the same RWKV_V6 base model 
-    with different Lora to provide different functions.
+    with different States to provide different functions.
 end note
 
 TuningClient
@@ -197,8 +197,8 @@ TuningFrontEnd --> TuningClient
 TuningService --> TuningBackend
 TuningBackend --> TuningService
 note right of TuningService
-CacheService utilizes SQLite as local cache.
-So there are several readers and only one writer process.
+Tuning Services is consisted of two blocks:
+. J2B that prepares rawdata into tranning format.
 end note
 
 
