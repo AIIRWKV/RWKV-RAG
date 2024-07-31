@@ -194,8 +194,5 @@ end note
 ```
 
 
-# Futrue Direction
-
-The multi-modal framework, primarily focused on ASR and Vision, will be available online soon. Additionally, GraphRAG and prompt optimization are also forthcoming.
 
 
