@@ -147,16 +147,16 @@ Tuning_Proxy
 state Tuning_Proxy{
     TuningFrontEnd
     state TuningFrontEnd{
-        CacheReaderFrontEnd
-        CacheWriterFrontEnd
+        J2BFrontEnd
+        FTFrontEnd
     }
-    TuningFrontEnd --> CacheRouter 
-    CacheRouter -->  CacheFrontEnd
-    CacheRouter --> CacheBackend
+    TuningFrontEnd --> TuningRouter 
+    TuningRouter -->  TuningFrontEnd
+    TuningRouter --> TuningBackend
     TuningBackend
     state TuningBackend{
-        CacheReaderBackend
-        CacheWriterBackend
+        J2BBackend
+        FTBackend
     }
 }
 TuningClient --> TuningFrontEnd
