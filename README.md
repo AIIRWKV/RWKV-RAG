@@ -16,70 +16,7 @@ Here the new design is to use a broker free queue library ZeroMQ ![alt text](htt
 
 Thanks to ZeroMQ's reliable and high performence implementation, this framework can scale from single resource restricted node to multinodes huge system.
 
-
-The new design looks like:
-```mermaid
-stateDiagram-v2
-    Client
-    state Client{
-        Clients1
-        Clients2
-        Clients3
-        Clients...
-    }
-    note left of Client
-        Clients only need to talk to the Proxy's FrontEnd. 
-        The Router of the Proxy will send the requests to one of the service instance through Backend.
-         Clients don't need to worry about the status of service cluster nor which server is anwsering specific request.
-    end note
-    state ProxyZeroMQ {
-        FrontEnd --> Router
-        Router --> FrontEnd
-        Router --> BackEnd
-        BackEnd --> Router
-    }
-    note right of ProxyZeroMQ
-        This is provided by ZeroMQ as a library 
-        which eliminates the maintainance of a separate service.
-        Moreover ZeroMQ's performance is much higher than all alternatives and 
-        still provides very good scalability when the application gets massive.
-    end note
-    Client --> FrontEnd
-    FrontEnd --> Client
-    BackendService --> BackEnd
-    BackEnd --> BackendService
-    state BackendService{
-        Service1
-        Service2
-        Service3
-        Service...
-    }
-    note right of BackendService
-        Service subscribe messages from Proxy and the instances 
-        can be scaled up and down according the load. 
-    end note
-```
-
-# Details of implementation
-
-## Download Models
-
-* Please download baseline models from https://huggingface.co/BlinkDL
-* Please download state for chatbot from: https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
-* There are several options for embedding models and rerank models:
-* Please download RWKV embedding model from :https://huggingface.co/yueyulin/rwkv6_emb_4k_base
-* Please download BGEM3 embedding models from: https://huggingface.co/BAAI/bge-m3
-* Please download BGEM3 reranker from: https://huggingface.co/BAAI/bge-reranker-v2-m3
-
-Please feel free to chang your own embedding an reranker from config,yaml. Currently, BGEM3 is an ideal option; however, RWKV embedding models and reranker with better performance is coming soon.
-
-
-The following part will describe the implementation which will update in the future since more features will be added. However the basic design will keep the same.
-
-## RWKV_RAG Framwork
-
-
-Currently three services are implemented:
+RWKV_RAG system looks like:
 
 ```mermaid
 stateDiagram-v2
@@ -156,6 +93,22 @@ IndexService provide two functions:
 end note
 
 ```
+
+
+## Download Models
+
+* Please download baseline models from https://huggingface.co/BlinkDL
+* Please download state for chatbot from: https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
+* There are several options for embedding models and rerank models:
+* Please download RWKV embedding model from :https://huggingface.co/yueyulin/rwkv6_emb_4k_base
+* Please download BGEM3 embedding models from: https://huggingface.co/BAAI/bge-m3
+* Please download BGEM3 reranker from: https://huggingface.co/BAAI/bge-reranker-v2-m3
+
+Please feel free to chang your own embedding an reranker from config,yaml. Currently, BGEM3 is an ideal option; however, RWKV embedding models and reranker with better performance is coming soon.
+
+
+The following part will describe the implementation which will update in the future since more features will be added. However the basic design will keep the same.
+
 
 # Qick Start
 
