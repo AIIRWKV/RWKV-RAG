@@ -3,47 +3,10 @@
 This is an all in RAG system for RWKV named "AIIRWKV". AIIRWKV employed asynchronus processing, which allows maintainence and update of services to be done independently. This system design enables minimal encapsulation with high extensibility. 
 Moreover, AIIRWKV has integrated one-click tools for StateTune, an extremely efficient fine-tuning method exclusive to RWKV. Additionally, it supports Lora and Pissa, providing convenient PEFT (Parameter-Efficient Fine-Tuning) solutions for users to tackle various downstream tasks.  
 
-A RAG system consists of several parts, in general there are following minimal parts:
- 
- - documents extracter:
- 
-    This part is to ingest documents from either local harddrives or search results from internet. It will extract data from different formats' original documents, segment the data into chunks which can be indexed by the document indexer.
-
- - document indexer:
-
-    This part is to use the vector database and/or traditional search engine to index the data extracted by documents extracter. Then it will provide services to search indexed documents according user input query.
-
- - Retreival Augmented Q/A generator:
-
-    This part is responsible for generating retrieval-augmented question and answer pairs based on the document found by document indexer. It ususally utilize LLM to generate reasonable answer.
 
 # System design
 
-Even the minimal RAG system involves several sub-systems and these systems may interact with each other. In order to increase the development flexibility and flat the development curve, a queue based RAG system is designed below:
-
-```mermaid
-sequenceDiagram 
-    box indexer
-        actor DocumentProvidor
-        participant DocumentExtractor
-        participant DocumentIndexer
-    end
-    box query
-        actor EndUser
-        participant RAGGenerator
-    end
-    
-    DocumentProvidor->>DocumentExtractor: 1.0 Extract contents from documents
-    DocumentExtractor->>DocumentIndexer:1.1 Index contents and store them
-    EndUser->>DocumentIndexer: 2.0 Find the most relevant document from indexed documents
-    activate DocumentIndexer
-    DocumentIndexer->>EndUser: 2.1 return the most relevant document from indexed documents
-    deactivate DocumentIndexer
-    EndUser->>RAGGenerator: 2.2 Generate answer acording the provided document and query
-    activate RAGGenerator
-    RAGGenerator->>EndUser: 2.3 Return generated answer
-    deactivate RAGGenerator
-```
+Even the minimal RAG system involves several sub-systems and these systems may interact with each other. In order to increase the development flexibility and flat the development curve, a queue based RAG system is designed.
 
 Every component must be pluggable and easy to scale. Which means RPC shouldn't be hard-wired means like TCP/InProc/InterProcess, etc.
 
@@ -53,38 +16,6 @@ Here the new design is to use a broker free queue library ZeroMQ ![alt text](htt
 
 Thanks to ZeroMQ's reliable and high performence implementation, this framework can scale from single resource restricted node to multinodes huge system.
 
-The new design looks like:
-```mermaid
-sequenceDiagram 
-    box indexer
-        actor DocumentProvidor
-        participant DocumentExtractor
-        participant DocumentIndexer
-    end
-    box query
-        actor EndUser
-        participant RAGGenerator
-    end
-    
-    DocumentProvidor->>DocumentExtractor: 1.0 Extract contents from documents
-    DocumentExtractor->>DocumentIndexer:1.1 Index contents and store them
-    EndUser->>DocumentIndexer: 2.0 Find the most relevant document from indexed documents
-    activate DocumentIndexer
-    DocumentIndexer->>EndUser: 2.1 return the most relevant document from indexed documents
-    deactivate DocumentIndexer
-    EndUser->>RAGGenerator: 2.2 Generate answer acording the provided document and query
-    activate RAGGenerator
-    RAGGenerator->>EndUser: 2.3 Return generated answer
-    deactivate RAGGenerator
-```
-
-Every component must be pluggable and easy to scale. Which means RPC shouldn't be hard-wired means like TCP/InProc/InterProcess, etc.
-
-The best design pattern is a pub-sub model that every component connects to a broker(or proxy) to send requests and receive responses. Generally heavy weight message queue like RabbitMQ, RocketMQ is used to ensure efficiency and reliability. However a Message Queue service is still another monster to administrate and maintain. 
-
-Here the new design is to use a broker free queue library ZeroMQ ![alt text](https://zeromq.org/images/logo.gif) as a queue service. 
-
-Thanks to ZeroMQ's reliable and high performence implementation, this framework can scale from single resource restricted node to multinodes huge system.
 
 The new design looks like:
 ```mermaid
@@ -145,7 +76,7 @@ Please feel free to chang your own embedding an reranker from config,yaml. Curre
 
 The following part will describe the implementation which will update in the future since more features will be added. However the basic design will keep the same.
 
-## Service starter
+## RWKV_RAG Framwork
 
 
 Currently three services are implemented:
