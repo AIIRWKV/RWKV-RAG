@@ -150,9 +150,7 @@ state Tunning_Proxy{
     TunningFrontEnd
     state TunningFrontEnd{ 
         Json2BindxFrontEnd
-        State_tuningFrontEnd
-        LoraFrontEnd
-        PissaFrontEnd
+        Fine_tuningFrontEnd
     }
    TunningFrontEnd --> TunningRouter 
     TunningRouter -->  TunningFrontEnd
@@ -160,9 +158,7 @@ state Tunning_Proxy{
     TunningBackend
     state TunningBackend{
         Json2BindexBackend
-        State_tuningBackend
-        LoraBackend
-        PissaBackend
+        Fine_tuningBackend
     }
 }
 TunningClient --> TunningFrontEnd
