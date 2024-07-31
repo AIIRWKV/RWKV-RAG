@@ -205,6 +205,6 @@ User can always change states for different downstream tasks.
 The multi-modal framework, primarily focused on ASR and Vision, will be available online soon. Additionally, GraphRAG and prompt optimization are also forthcoming.
 
 # Acknowledgement
-- Our RWKV tuning service is adapted from [RWKV-PEFT](https://github.com/JL-er/RWKV-PEFT)
-- Our LLM service is adapted from [RWKV-LM](https://github.com/BlinkDL/RWKV-LM)
-- Authors: https: [YYnil](https://github.com/yynil) ; [Ojiyum](https://github.com/Ojiyumm) ;  [LonghuaLiu](https://github.com/Liu3420175)
+- All RWKV tuning service is adapted from [J.L](https://github.com/JL-er/RWKV-PEFT)
+- All RWKV models is from [Bo Peng](https://github.com/BlinkDL/RWKV-LM)
+- Authors: [YYnil](https://github.com/yynil) ; [Ojiyum](https://github.com/Ojiyumm) ;  [LonghuaLiu](https://github.com/Liu3420175)
