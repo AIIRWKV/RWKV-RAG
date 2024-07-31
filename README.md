@@ -199,6 +199,7 @@ TuningBackend --> TuningService
 note right of TuningService
 Tuning Services is consisted of two blocks:
 . J2B that prepares rawdata into tranning format.
+. Tuning that helps user to finetune model using Lora,Pissa or State-Tune.
 end note
 
 
