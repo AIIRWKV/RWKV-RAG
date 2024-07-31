@@ -142,28 +142,28 @@ note right of LLM_Service
     with different Lora to provide different functions.
 end note
 
-TuningClient
-Tuning_Proxy
-state Tuning_Proxy{
-    TuningFrontEnd
-    state TuningFrontEnd{
-        Json2BindxFrontEnd
-        Fine-tuneFrontEnd
+CacheClient
+Cache_Proxy
+state Cache_Proxy{
+    CacheFrontEnd
+    state CacheFrontEnd{
+        CacheReaderFrontEnd
+        CacheWriterFrontEnd
     }
-    TuningFrontEnd --> TuningRouter 
-    TuningRouter -->  TuningFrontEnd
-    TuningRouter --> TuningBackend
-    TuningBackend
+    CacheFrontEnd --> CacheRouter 
+    CacheRouter -->  CacheFrontEnd
+    CacheRouter --> CacheBackend
+    CacheBackend
     state CacheBackend{
-        Json2BindxBackend
-        Fine-tuneBackend
+        CacheReaderBackend
+        CacheWriterBackend
     }
 }
-TuningClient --> TuningFrontEnd
-TuningFrontEnd --> TuningClient
-TuningService --> TuningBackend
-TuningBackend --> TuningService
-note right of TuningService
+CacheClient --> CacheFrontEnd
+CacheFrontEnd --> CacheClient
+CacheService --> CacheBackend
+CacheBackend --> CacheService
+note right of CacheService
 CacheService utilizes SQLite as local cache.
 So there are several readers and only one writer process.
 end note
