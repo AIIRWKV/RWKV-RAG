@@ -160,30 +160,6 @@ streamlit run client.py
 ```
 Open the url that provided by streamlit in the browser,you will see the flowing interface.
 
-### Knowledge Repository
-
-<div style="width: 35%; height: auto;text-align:center">
-  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86.png" alt="knowledge manager" >
-</div>
-
-### Adding Text to the Knowledge Repository
-
-<div style="width: 35%; height: auto;text-align:center">
-  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E5%85%A5%E5%BA%93.png" alt="knowledge manager" >
-</div>
-
-### fine-tuning
-
-<div style="width: 35%; height: auto;text-align:center">
-  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E6%A8%A1%E5%9E%8B%E5%BE%AE%E8%B0%83.png" alt="knowledge manager" >
-</div>
-
-
-### Q&A
-
-<div style="width: 35%; height: auto;text-align:center">
-  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E9%97%AE%E7%AD%94.png" alt="knowledge manager" >
-</div>
 
 ## Notes
 - It is recommended to use Python 3.10 or Python 3.9.
@@ -196,11 +172,20 @@ Open the url that provided by streamlit in the browser,you will see the flowing 
 
 This UI supports VDB Collection search，collection creation and deletion, content management of collection.
 
+<div style="width: 35%; height: auto;text-align:center">
+  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86.png" alt="knowledge manager" >
+</div>
+
 ## Building knowledgebase
 
 This UI supports three different methods to Index contents into knowledgebase: Hand-typing, uploading from local computer, upload from local server.
 AIIRWKV also supports internet search to index real-time data from internet into knowledgebase. 
 User can choose chunk size and chunk overlap on their own according to vairous situation.
+
+<div style="width: 35%; height: auto;text-align:center">
+  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E5%85%A5%E5%BA%93.png" alt="knowledge manager" >
+</div>
+
 
 ## Fine-Tune RWKV models in one click:
 
@@ -220,12 +205,20 @@ VRAM requirement for fine-tuning RWKV models with 1024 ctx.
 
 For detail explaintions of other parameters and hyperparameters, please refer to the official tutorial at : https://rwkv.cn/RWKV-Fine-Tuning/State-Tuning
 
+<div style="width: 35%; height: auto;text-align:center">
+  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E6%A8%A1%E5%9E%8B%E5%BE%AE%E8%B0%83.png" alt="knowledge manager" >
+</div>
+
 ## RAG CHATBOT
 
 Please retrieve the most relevant information from the knowledgebase, then ask questions regarding those information. 
 User can modify the basemodel and state dynamically on the UI.
 AIIRWKV is a chatbot that can deliever precise answers based on all the information from last 6 round of conversation.
 User can always change states for different downstream tasks.
+
+<div style="width: 35%; height: auto;text-align:center">
+  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E9%97%AE%E7%AD%94.png" alt="knowledge manager" >
+</div>
 
 # Futrue Direction
 
