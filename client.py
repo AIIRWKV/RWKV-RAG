@@ -288,7 +288,7 @@ def rag_chain(index_client: IndexClient, llm_client: LLMClient):
         st.write(f"Best Match: {best_match}")
         st.session_state.best_match = best_match
 
-    st.subheader('AllRWKV')
+    st.subheader('RWKV_RAG_CHAT')
 
     if "chat_messages" not in st.session_state:
         st.session_state.chat_messages = []
