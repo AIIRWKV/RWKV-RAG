@@ -1,15 +1,24 @@
 # 一键 RAG  
 
-这是一个名为“AIIRWKV”的一键 RAG 系统。AIIRWKV 采用了异步处理技术，允许服务的维护和更新可以独立进行。该系统设计没有任何封装，每一个步骤都可以任意调用接口。
+AIIRWKV 是一个基于 RWKV 模型的一键 RAG 部署系统。
 
-此外，AIIRWKV 集成了一键工具用于 StateTune，这是一种专门针对 RWKV 的极其高效的微调方法。此外，AIIRWKV 还支持 Lora 和 Pissa，为用户提供了便捷的 PEFT（参数高效微调）解决方案，以应对各种下游任务。该框架中的模型在中文数据集上进行了调优，因此，AIIRWKV 目前在中文任务上表现更佳。然而，英语调优模型也正在开发中。 
+AIIRWKV 使用的模型针对中文数据集进行调优，因此在中文任务上表现更佳。我们也在开发英文调优的模型，敬请期待。 
 
+> **Warning**
+>
+> AIIRWKV 当前只支持 Linux 部署，未提供 Windows 或 MacOS 版本。
 
-# 系统设计
+## 特性
+
+- **⛓️异步处理系统：** AIIRWKV 系统采用了异步处理技术，可以独立进行服务的维护和更新
+- **🎛️ 最小封装设计：** AIIRWKV 系统没有任何封装，每一个步骤都可以任意调用 API 接口
+- **⚒️ 支持多种微调方法：** AIIRWKV 支持 Lora 和 Pissa 等 RWKV 高效微调方法，此外也集成了一键 StateTune 工具（一种专门针对 RWKV 的极其高效的微调方法）
+
+## 系统设计
 
 即使是最小化的 RAG 系统也涉及多个子系统，这些子系统可能会相互互动。为了提高开发灵活性并平滑开发曲线，我们设计了一个基于队列的 RAG 系统。
 
-每个组件都必须是可插拔的且易于扩展。这意味着 RPC 不应该硬编码为特定的协议，如 TCP/InProc/InterProcess 等。
+每个组件都必须是可插拔的且易于扩展。这意味着 RPC 不应该硬编码为 TCP/InProc/InterProcess 等特定协议。
 
 最佳设计模式是发布-订阅模型，即每个组件连接到一个代理（或中介）以发送请求和接收响应。通常，像 RabbitMQ、RocketMQ 这样的重型消息队列被用来确保效率和可靠性。然而，消息队列服务本身也是一个需要管理和维护的复杂系统。
 
@@ -98,19 +107,17 @@ end note
 
 ## 模型下载
 
-请从以下链接下载基线模型: https://huggingface.co/BlinkDL
+- 下载 RWKV base model（基底模型）：https://huggingface.co/BlinkDL
+- 下载用于 Chat-bot 功能的 State 文件：https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
+- 下载 BGEM3 重排序模型（Rerank model）：https://huggingface.co/BAAI/bge-reranker-v2-m3
+- 选择下载一项嵌入模型（embedding model）
+  - 下载 RWKV Embedding 模型: https://huggingface.co/yueyulin/rwkv6_emb_4k_base 
+  - 下载 BGEM3 Embedding 模型: https://huggingface.co/BAAI/bge-m3 
 
-请从以下链接下载聊天机器人的状态文件: https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
 
-嵌入模型和重排序模型有多种选项:
+你可以通过更改 `ragq.yml` 文件来更改 AIIRWKV 系统使用的 embedding model 和 rerank model。
 
-  请从以下链接下载 RWKV 嵌入模型: https://huggingface.co/yueyulin/rwkv6_emb_4k_base 
-  
-  请从以下链接下载 BGEM3 嵌入模型: https://huggingface.co/BAAI/bge-m3 
-  
-  请从以下链接下载 BGEM3 重排序模型: https://huggingface.co/BAAI/bge-reranker-v2-m3
-
-请随时在 config.yaml 文件中更改您自己的嵌入模型和重排序模型。目前，BGEM3 是一个理想的选项；然而，RWKV 嵌入模型和重排序模型的更好性能版本也在开发中。
+目前 BGEM3 更适合作为嵌入模型，然而，RWKV 嵌入模型和重排序模型的更好性能版本也在开发中。
 
 以下部分将描述当前的实现情况。未来将会有更多功能的更新，但基本设计将保持不变。
 
@@ -134,11 +141,14 @@ pip install -r requirement.txt
 |14b |30G|
 
 
-
 ## 修改配置文件
-您可以通过配置文件 ragq.yml 控制所有服务的启用或禁用。默认情况下，所有服务都是启用的。在使用之前，您需要修改以下配置项以适应某些服务。
+
+AIIRWKV 默认启用所有服务，您可以通过修改配置文件 `ragq.yml` 来启用或禁用某一项服务。
+
+此外，Tuning Service（微调服务）的默认参数适用于 RWKV-6-1.6B 基底模型。如果你需要微调其他参数的模型，请修改
 
 ### LLM Service
+
 嵌入、重排序和生成文本。
 - base_model_file: RWKV 基线模型路径，请参考  [RWKV基模下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B) or 或模型下载
  - bgem3_path: 嵌入模型路径，推荐使用: bge-m31
