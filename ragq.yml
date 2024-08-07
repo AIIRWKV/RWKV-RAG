@@ -1,3 +1,9 @@
+# 用户可以直接通过enable来启动或者关闭想要的服务
+# 用户可以通过更改num_worker来分配资源
+# 用户通过更改llm中的device来分配显卡
+
+
+
 llm:
   enabled: true
   service_module: llm_service
@@ -11,9 +17,9 @@ llm:
     port: 7782
   num_workers: 1
   spawn_method: spawn
-  base_model_file: /home/rwkv/Peter/model/base/RWKV-x060-World-7B-v2.1-20240507-ctx4096.pth
-  bgem3_path: /home/rwkv/Peter/model/bi/bge-m31
-  rerank_path: /home/rwkv/Peter/model/bi/BAAIbge-reranker-v2-m3
+  base_model_path: /home/rwkv/Peter/model/base/RWKV-x060-World-7B-v2.1-20240507-ctx4096.pth
+  embedding_path: /home/rwkv/Peter/model/bi/bge-m31
+  reranker_path: /home/rwkv/Peter/model/bi/BAAIbge-reranker-v2-m3
   state_path: /home/rwkv/Peter/model/state/qa/rwkv-2.pth
   device: cuda:3
 index:
