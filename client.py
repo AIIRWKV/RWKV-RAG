@@ -361,17 +361,17 @@ def wandb_manager(client: TuningClient):
     if st.button("登录") and api_key:
         resp = client.wandb_login(api_key)
         if str(resp.get('code')) == '200':
-            st.success(resp.get('value'), '')
+            st.success(resp.get('value', ''))
         else:
-            st.warning(resp.get('value'), '')
+            st.warning(resp.get('value', ''))
     st.markdown('<span style="font-size: 19x; font-weight: bold;">添加项目</span>', unsafe_allow_html=True)
     project_name = st.text_input("请输入wandb项目名:", key="project_name")
     if st.button("添加") and project_name:
         resp = client.wandb_add_project(project_name)
         if str(resp.get('code')) == '200':
-            st.success(resp.get('value'), '')
+            st.success(resp.get('value', ''))
         else:
-            st.warning(resp.get('value'), '')
+            st.warning(resp.get('value', ''))
 
 def tuning_manager(client: TuningClient, app_scenario):
     """
