@@ -1,7 +1,44 @@
 import os
+from PIL import Image
+import io
 
 
 import fitz  # PyMuPDF for PDF handling
+
+
+def load_and_split_txt(file_path: str, chunk_size:int, chunk_overlap:int=0):
+    """
+    分割txt文件
+    """
+    current_pos = 0
+    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+        while 1:
+            current_pos = max(0, current_pos - chunk_overlap)
+            f.seek(current_pos)
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            current_pos += chunk_size
+            yield chunk
+
+
+def load_and_split_pdf(file_path: str, chunk_size:int, chunk_overlap:int=0):
+    """
+    分割pdf文件
+    """
+    with fitz.open(file_path) as doc:
+        for page in doc:
+            txt = page.get_text()
+            if txt:
+                yield txt
+            else:
+                # img
+                imgs = page.get_images(full=True)
+                for img in imgs:
+                    # 获取图像对象
+                    img_obj = doc.extract_image(img[0])
+                pass
+
 
 def load_and_split_text(file_path, output_dir,chunk_size, chunk_overlap):
     # 获取文件扩展名
@@ -46,3 +83,8 @@ def load_and_split_text(file_path, output_dir,chunk_size, chunk_overlap):
         f.write(splitted_text)
     return chunks, output_file
 
+
+if __name__ == '__main__':
+    a = load_and_split_txt("D:\\python-edu_train-00001-of-00002.jsonl", 1024, 0)
+    for i in a:
+        pass

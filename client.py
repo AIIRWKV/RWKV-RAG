@@ -196,7 +196,7 @@ def internet_search(index_client: IndexClient, file_client: FileStatusManager):
 
         input_path = st.text_input("请输入知识库路径:", key="input_path_key")
         chunk_size = st.number_input("请输入块大小（字符数）:", min_value=1, value=512, key="chunk_size_key")
-        chunk_overlap = st.number_input("请输入块重叠（字符数）:", min_value=1, value=8, key="chunk_overlap_key")
+        chunk_overlap = st.number_input("请输入块重叠（字符数）:", min_value=0, value=0, key="chunk_overlap_key")
         output_path = st.text_input("请输入输出目录路径(:red[可更改]):",default_knowledge_base_dir, key="output_path_key")
 
         # 加载按钮
