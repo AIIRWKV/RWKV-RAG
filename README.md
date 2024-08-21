@@ -21,7 +21,6 @@ RWKV-RAG 使用的模型针对中文数据集进行调优，因此在中文任�
 - 下载用于 Chat-bot 功能的 State 文件：https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
 - 下载 BGEM3 重排序模型（Rerank model）：https://huggingface.co/BAAI/bge-reranker-v2-m3
 - 选择下载一项嵌入模型（embedding model）
-  - 下载 RWKV Embedding 模型: https://huggingface.co/yueyulin/rwkv6_emb_4k_base 
   - 下载 BGEM3 Embedding 模型: https://huggingface.co/BAAI/bge-m3 
 
 > [!TIP]  
