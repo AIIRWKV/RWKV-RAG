@@ -19,3 +19,9 @@ streamlit==1.35.0
 torch==2.2.2
 transformers==4.42.3
 triton==2.2.0
+zmq==0.0.0
+wandb==0.17.6
+tools==0.1.9
+pytils==0.4.1
+frontend==0.0.1
+
