@@ -2,6 +2,7 @@ import os
 
 import yaml
 
+
 class Configuration:
     def __init__(self, config_file):
         if not os.path.exists(config_file):
@@ -36,21 +37,22 @@ class Configuration:
                 getattr(self, function_name)(key, settings)
 
     def _validate_llm_service_config(self,key, settings):
-        base_model_file = settings.get("base_model_file", '')
+        base_model_file = settings.get("base_model_path", '')
         if not base_model_file:
-            raise ValueError(f"base_model_file is required for llm service")
+            raise ValueError(f"base_model_path is required for llm service")
         if not os.path.exists(base_model_file):
-            raise FileNotFoundError(f"base_model_file {base_model_file} not found for {key}")
-        bgem3_path = settings.get("bgem3_path", '')
+            raise FileNotFoundError(f"base_model_path {base_model_file} not found for {key}")
+
+        bgem3_path = settings.get("embedding_path", '')
         if not bgem3_path:
-            raise ValueError(f"bgem3_path is required for llm service")
+            raise ValueError(f"embedding_path is required for llm service")
         if not os.path.exists(bgem3_path):
-            raise FileNotFoundError(f"bgem3_path {bgem3_path} not found for {key}")
-        rerank_path = settings.get("rerank_path", '')
+            raise FileNotFoundError(f"embedding_path {bgem3_path} not found for {key}")
+        rerank_path = settings.get("reranker_path", '')
         if not rerank_path:
-            raise ValueError(f"rerank_path is required for llm service")
+            raise ValueError(f"reranker_path is required for llm service")
         if not os.path.exists(rerank_path):
-            raise FileNotFoundError(f"rerank_path {rerank_path} not found for {key}")
+            raise FileNotFoundError(f"reranker_path {rerank_path} not found for {key}")
         state_path = settings.get("state_path", '') or ''
         if not os.path.exists(state_path):
             raise FileNotFoundError(f"state_path {state_path} not found for {key}")
