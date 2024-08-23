@@ -22,6 +22,7 @@ llm: #大模型服务配置项
   rerank_path: /home/rwkv/Peter/model/bi/BAAIbge-reranker-v2-m3 # rerank model 路径
   state_path: /home/rwkv/Peter/model/state/qa/rwkv-2.pth # State file 路径
   device: cuda:3 #如果你只有一张显卡，填 cuda:0
+
 index: #知识库服务配置项
   enabled: true
   service_module: index_service
