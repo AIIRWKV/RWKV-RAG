@@ -10,24 +10,10 @@ RWKV-RAG 使用的模型针对中文数据集进行调优，因此在中文任�
 
 ## 特性
 
-- **💻 带图形化界面：** RWKV RAG 的主要功能都有用户友好的 WebUI 界面，提供直观且易于操作的用户体验
+- **💻 带图形化界面：** RWKV-RAG 的主要功能都有用户友好的 WebUI 界面，提供直观且易于操作的用户体验
 - **⛓️ 异步处理系统：** RWKV-RAG 系统采用了异步处理技术，你可以选择在单个服务器上部署部分服务，也可将服务拆分部署在不同的服务器上
 - **🎛️ 最小封装设计：** RWKV-RAG 系统没有任何封装，每一个步骤都可以任意调用 API 接口
 - **⚒️ 支持多种微调方法：** RWKV-RAG 支持 Lora 和 Pissa 等 RWKV 高效微调方法，此外也集成了一键 StateTune 工具（一种专门针对 RWKV 的极其高效的微调方法）
-
-## 模型下载
-
-- 下载 RWKV base model（基底模型）：https://huggingface.co/BlinkDL
-- 下载 State 文件（用于问答机器人功能）：https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
-- 下载 BGEM3 重排序模型（rerank model）：https://huggingface.co/BAAI/bge-reranker-v2-m3
-- 下载一项嵌入模型（embedding model）
-  <!-- - 下载 RWKV Embedding 模型: https://huggingface.co/yueyulin/rwkv6_emb_4k_base -->
-  - 下载 BGEM3 Embedding 模型: https://huggingface.co/BAAI/bge-m3 
-
-> [!TIP]  
-> 可以通过更改 `ragq.yml` 文件，修改 RWKV-RAG 系统使用的 embedding model 和 rerank model。
-
-目前 BGEM3 更适合作为 RWKV-RAG 系统的 rerank 和 embedding 模型，我们也在开发性能更强的 RWKV embedding 和 rerank 模型，以替换掉 BGEM3 模型。
 
 ## 下载和安装
 
@@ -66,7 +52,7 @@ pip install -r requirements.txt
 
 4. **确认 VRAM 是否充足**
 
-以下是各参数 RWKV 模型的 VRAM 推荐，请确认你的 VRAM 规格，并选择一个合适的 RWKV 模型（用于 RWKV-RAG 系统）：
+以下是各参数 RWKV 模型的**推理 VRAM 需求**。请确认设备 VRAM 并选择一个合适的 RWKV 模型作为 RWKV-RAG 系统：
 
 | SIZE | VRAM |
 |----------|----------|
@@ -80,11 +66,27 @@ pip install -r requirements.txt
 > 
 > 当前 RWKV-RAG 的**知识库功能**需要加载 RWKV 模型，**一键微调功能**会再次加载 RWKV 模型。
 > 
-> 同时使用知识库和微调服务时需要合理分配 GPU 的显存，避免因显存不足而导致的错误。
+> **同时使用知识库和微调服务时，需要合理分配 GPU 的显存，避免因显存不足而导致的错误。**
+
+## 模型下载
+
+完整的 RWKV-RAG 服务需要以下四种模型/文件，请将以下四类模型下载到你的 Linux 工作区：
+
+- 下载 RWKV base model（基底模型）：https://huggingface.co/BlinkDL
+- 下载 State 文件（用于问答机器人功能）：https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
+- 下载 BGEM3 重排序模型（rerank model）：https://huggingface.co/BAAI/bge-reranker-v2-m3
+- 下载一项嵌入模型（embedding model）
+  <!-- - 下载 RWKV Embedding 模型: https://huggingface.co/yueyulin/rwkv6_emb_4k_base -->
+  - 下载 BGEM3 Embedding 模型: https://huggingface.co/BAAI/bge-m3 
+
+> [!TIP]  
+> 可以通过更改 `ragq.yml` 文件，修改 RWKV-RAG 系统使用的 embedding model 和 rerank model。
+
+目前 BGEM3 更适合作为 RWKV-RAG 系统的 rerank 和 embedding 模型。我们也在开发性能更强的 RWKV embedding 和 rerank 模型，以替换掉 BGEM3 模型。
 
 ## 修改配置文件
 
-RWKV-RAG 默认启用 LLM Service（大模型） 、Index Service（知识库索引）和 Tuning Service（一键微调）三种服务。可以通过修改配置文件 `ragq.yml` 来启用或禁用某一项服务。
+RWKV-RAG 默认启用 LLM Service（大模型） 、Index Service（知识库索引）和 Tuning Service（一键微调）三种服务。可以通过修改项目配置文件 `ragq.yml` ，以启用或禁用某一项服务。
 
 ### 修改 LLM Service 配置
 
@@ -129,11 +131,12 @@ python3 service.py
 ```shell
 streamlit run client.py
 ```
-在浏览器中打开 Streamlit 提供的 URL，应当可以看到如下界面，：
+在浏览器中打开 Streamlit 提供的 URL，应当可以看到如下界面：
 
 ![RWKV-RAG-WebUI-client](./docs/RWKV-RAG-WebUI-client.png)
 
-至此 RWKV-RAG 服务已成功启动，可以在 WebUI 客户端中体验知识库管理、问答机器人，以及模型微调等功能。
+至此， RWKV-RAG 服务已成功启动，可以在 WebUI 客户端中体验知识库管理、问答机器人，以及模型微调等功能。
+
 
 ## RWKV-RAG 功能指引
 
@@ -147,9 +150,11 @@ streamlit run client.py
 
 ![RWKV-RAG-WebUI-knowledge-manager](./docs/RWKV-RAG-Manage-Database.gif)
 
+---
+
 ### 知识入库
 
-知识入库界面用于将文本内容**分块索引**到现有的知识库中，已入库的知识可以用于问答机器人或其他服务。
+知识入库界面用于将文本内容**分块索引**到现有的知识库中，已入库的知识可以被检索，用于问答机器人或其他下游服务。
 
 RWKV-RAG 支持三种不同的知识入库方法，这些方法支持解析 TXT 和 PDF 两种文件格式：
 
@@ -163,19 +168,23 @@ RWKV-RAG 支持三种不同的知识入库方法，这些方法支持解析 TXT 
 > 
 > RWKV-RAG 也支持从互联网上搜索知识，并将搜索到的知识文本以 TXT 格式保存到**服务器端的指定目录**。
 >
-> **联网搜索得到的 txt 文本文件仍然需要知识入库，才能加入现有知识库中**
+> **联网搜索得到的 txt 文本文件仍然需要进行知识入库，才能加入现有知识库中。**
 
 ![联网搜索知识](./docs/RWKV-RAG-Search-From-Internet.png)
 
-## 知识问答机器人
+---
+
+### 知识问答机器人
 
 RWKV-RAG 系统提供基于知识库的问答机器人（RWKV-RAG-CHAT）。用户可以从现有的知识库中检索特定主题的知识，然后利用提取到的知识与模型进行聊天，以增强模型的回答效果。
+
+RWKV-RAG-CHAT 的工作流程如下：
 
 1. **输入查询内容，点击 “召回” 按钮**
    
   ![RWKV-RAG-CHAT-1-Query](./docs/RWKV-RAG-CHAT-1-Query.png)
 
-2. **根据查询主题，从知识库中提取相关的知识（文本块）**
+2. **RWKV-RAG 从知识库中提取最相关的知识（文本块）**
    
   ![RWKV-RAG-CHAT-2-Get-Text](./docs/RWKV-RAG-CHAT-2-Get-Text.png)
 
@@ -196,6 +205,7 @@ RWKV-RAG-CHAT 会基于**最佳匹配知识和最近 6 回合的对话内容**�
 > 
 > 可以通过微调训练 RWKV State 文件，使 RWKV-RAG-CHAT 更好地适应其他下游任务。
 
+---
 
 ### 一键微调 RWKV
 
@@ -205,16 +215,17 @@ RWKV-RAG 支持 Lora 和 Pissa 等 RWKV 高效微调方法，此外也集成了�
 
 #### 1. 准备微调数据
 
-请上传**一个 jsonl 文件**或手动输入 **jsonl 格式**的文本，作为 RWKV 微调训练数据：
+请上传**一个符合 RWKV 数据格式的 jsonl 文件**或手动输入 **jsonl 格式**的文本，作为 RWKV 微调训练数据：
 
 - Epoch：将数据重复多少次，每次复制会随机排列数据顺序
-- Context Length：度建议 1024 或 512
-
-![RWKV-RAG-Tuning-Data](./docs/RWKV-RAG-Tuning-Data.png)
+- Context Length：根据数据上下文长度而定，建议 1024 或 512
 
 > [!TIP]  
 > 
-> RWKV 模型的标准数据格式，请参考：[**RWKV 教程 - 准备微调数据**](https://rwkv.cn/RWKV-Fine-Tuning/FT-Dataset)
+> 如果你不清楚 RWKV 的标准训练数据格式，请参考：[**RWKV 教程 - 准备微调数据**](https://rwkv.cn/RWKV-Fine-Tuning/FT-Dataset)
+
+![RWKV-RAG-Tuning-Data](./docs/RWKV-RAG-Tuning-Data.png)
+
 
 #### 2. 注册 WandB 
 
@@ -228,9 +239,7 @@ RWKV-RAG 的后台终端上会显示一个任务栏，用于跟踪微调过程�
 
 #### 3. 设置微调参数
 
-开始微调前，请确认你是否有充足的 VRAM。
-
-以 State tuning 为例，基于 1024 上下文窗口的显存需求：
+开始微调前，请确认你是否有充足的 VRAM。以下是 State tuning 的显存需求（基于 1024 上下文窗口）：
 
 | Size      | fp16       | int8       | nf4       |
 |---------------|------------|------------|-----------|
@@ -238,9 +247,9 @@ RWKV-RAG 的后台终端上会显示一个任务栏，用于跟踪微调过程�
 | RWKV6-3B      | 8.7GB GPU  | 6.2GB GPU  | 4.9GB GPU |
 | RWKV6-7B      | 17.8GB GPU | 11.9GB GPU | 8.5GB GPU |
 
-在确认你有充足的 VRAN 后，请修改页面的各项训练参数。
+在确认你有充足的 VRAN 后，请修改页面的各项训练参数，并开启训练。
 
-有关其他参数和超参数的详细解释，请参阅[RWKV 官方教程](https://rwkv.cn/RWKV-Fine-Tuning/State-Tuning)
+有关训练参数和超参数的详细解释，请参阅[RWKV 教程 - 微调参数](https://rwkv.cn/RWKV-Fine-Tuning/State-Tuning)
 
 ![](./docs/模型微调.png)
 
