@@ -1,6 +1,6 @@
 # RWKV-RAG  
 
-RWKV-RAG 是一个基于 RWKV 模型的一键 RAG 部署系统，可轻松搭建和管理本地知识库，同时提供了基于本地知识库的问答机器人和 RWKV 一键微调功能。
+RWKV-RAG 是一个基于 RWKV 模型的一键 RAG 部署系统，可轻松搭建和管理本地知识库，同时提供了基于本地知识库的问答机器人（RWKV-RAG-CHAT）和 RWKV 一键微调功能。
 
 RWKV-RAG 使用的模型针对中文数据集进行调优，因此在中文任务上表现更佳。我们也在开发英文调优的模型，敬请期待。 
 
@@ -10,35 +10,50 @@ RWKV-RAG 使用的模型针对中文数据集进行调优，因此在中文任�
 
 ## 特性
 
-- **💻 带图形化界面：** RWKV RAG 的主要功能都有用户友好的 Web-GUI 界面，供直观且易于操作的用户体验
-- **⛓️ 异步处理系统：** RWKV-RAG 系统采用了异步处理技术，可以独立进行服务的维护和更新
+- **💻 带图形化界面：** RWKV RAG 的主要功能都有用户友好的 WebUI 界面，提供直观且易于操作的用户体验
+- **⛓️ 异步处理系统：** RWKV-RAG 系统采用了异步处理技术，你可以选择在单个服务器上部署部分服务，也可将服务拆分部署在不同的服务器上
 - **🎛️ 最小封装设计：** RWKV-RAG 系统没有任何封装，每一个步骤都可以任意调用 API 接口
 - **⚒️ 支持多种微调方法：** RWKV-RAG 支持 Lora 和 Pissa 等 RWKV 高效微调方法，此外也集成了一键 StateTune 工具（一种专门针对 RWKV 的极其高效的微调方法）
 
 ## 模型下载
 
 - 下载 RWKV base model（基底模型）：https://huggingface.co/BlinkDL
-- 下载用于 Chat-bot 功能的 State 文件：https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
-- 下载 BGEM3 重排序模型（Rerank model）：https://huggingface.co/BAAI/bge-reranker-v2-m3
-- 选择下载一项嵌入模型（embedding model）
+- 下载 State 文件（用于问答机器人功能）：https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
+- 下载 BGEM3 重排序模型（rerank model）：https://huggingface.co/BAAI/bge-reranker-v2-m3
+- 下载一项嵌入模型（embedding model）
+  <!-- - 下载 RWKV Embedding 模型: https://huggingface.co/yueyulin/rwkv6_emb_4k_base -->
   - 下载 BGEM3 Embedding 模型: https://huggingface.co/BAAI/bge-m3 
 
 > [!TIP]  
-> 你可以通过更改 `ragq.yml` 文件来更改 RWKV-RAG 系统使用的 embedding model 和 rerank model。
+> 可以通过更改 `ragq.yml` 文件，修改 RWKV-RAG 系统使用的 embedding model 和 rerank model。
 
-目前 BGEM3 更适合作为 embedding 模型，我们也在开发性能更强的 RWKV embedding 和 rerank 模型。
+目前 BGEM3 更适合作为 RWKV-RAG 系统的 rerank 和 embedding 模型，我们也在开发性能更强的 RWKV embedding 和 rerank 模型，以替换掉 BGEM3 模型。
 
 ## 下载和安装
 
-1. 克隆 RWKV-RAG 仓库
+1. **克隆 RWKV-RAG 仓库**
 
 ```
-git clone https://github.com/shoumenchougou/RWKV_RAG.git
+git clone https://github.com/AIIRWKV/RWKV-RAG.git
 ```
 
-2. 安装依赖项
+2. **创建 chromaDB 目录和知识库文件**
+
+依次运行以下指令，创建 chromaDB 目录和知识库文件：
+
+```bash
+cd RWKV-RAG/src/services #进入服务目录
+
+mkdir chromaDB #创建 chromaDB 目录
+
+cd chromaDB #进入 chromaDB 目录
+
+touch files_services.db #创建知识库文件
+```
+
+3. **安装依赖项**
    
-请安装 requirement.txt 中列出的依赖项：
+请安装 requirement.txt 中列出的所有依赖项：
 
 ```shell
 pip install -r requirements.txt 
@@ -47,94 +62,175 @@ pip install -r requirements.txt
 > 
 > - 推荐使用 Python 3.10 或 Python 3.9
 > - 推荐使用 torch 2.2.2+cu121
-> - PyTorch Lightning **必须**使用版本 1.9.5
+> - PyTorch Lightning **必须**使用 1.9.5 版本
 
-3. 确认 VRAM 是否充足
+4. **确认 VRAM 是否充足**
 
-以下是不同参数下 RWKV 模型的 VRAM 推荐配置，请确认你的 VRAM 规格并选择合适的 RWKV base model 。
+以下是各参数 RWKV 模型的 VRAM 推荐，请确认你的 VRAM 规格，并选择一个合适的 RWKV 模型（用于 RWKV-RAG 系统）：
 
 | SIZE | VRAM |
 |----------|----------|
-| 1.6b   | 4G   |
-| 3b   | 7.5G   |
-| 7b   | 18G |
-|12b   | 24G|
-|14b |30G|
+| RWKV-6-1B6   | 4G   |
+| RWKV-6-3B   | 7.5G   |
+| RWKV-6-7B   | 18G |
+| RWKV-6-12B   | 24G|
+| RWKV-6-14B |30G|
 
 > [!WARNING]  
 > 
-> 当前 RWKV-RAG 一键微调功能会重新加载 RWKV base model 模型。因此需要合理分配 GPU 内存，以避免因 VRAM 不足而导致的错误。
+> 当前 RWKV-RAG 的**知识库功能**需要加载 RWKV 模型，**一键微调功能**会再次加载 RWKV 模型。
+> 
+> 同时使用知识库和微调服务时需要合理分配 GPU 的显存，避免因显存不足而导致的错误。
 
 ## 修改配置文件
 
-RWKV-RAG 默认启用所有服务，您可以通过修改配置文件 `ragq.yml` 来启用或禁用某一项服务。
+RWKV-RAG 默认启用 LLM Service（大模型） 、Index Service（知识库索引）和 Tuning Service（一键微调）三种服务。可以通过修改配置文件 `ragq.yml` 来启用或禁用某一项服务。
 
-### LLM Service
+### 修改 LLM Service 配置
 
-嵌入、重排序和生成文本。
-- base_model_file: RWKV 基线模型路径，请参考  [RWKV基模下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B) or 或模型下载
- - bgem3_path: 嵌入模型路径，推荐使用: bge-m31
- - rerank_path: 重排序模型路径，推荐使用: BAAIbge-reranker-v2-m3
- - state_path: 记忆状态路径；记忆状态是通过状态微调生成的。
+LLM service 配置项会影响 RWKV-RAG 系统的嵌入、重排序和问答机器人（RWKV-RAG-CHAT）等服务。重点关注以下配置项：
 
-### Index Service
-- chroma_db_path: ChromaDB 数据库路径
+- base_model_file: RWKV 基底模型的路径，请参考 [RWKV 模型下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B) 
+- bgem3_path: 嵌入模型的路径，推荐使用: bge-m31
+- rerank_path: 重排序模型的路径，推荐使用: BAAIbge-reranker-v2-m3
+- state_path:  State 文件的路径
+- num_workers: LLM 服务使用的显卡数量
+- device: 指定 LLM 运行的 GPU ，如果你只有一张显卡则改为 cuda:0
+
+host 和端口号等参数请按需调整。
+
+### 修改 Index Service 配置
+
+Index Service 配置项会影响 RWKV-RAG 系统的知识库管理等 ChromaDB 数据库相关服务。请重点关注以下配置项：
+
+- chroma_db_path: 你的 ChromaDB 数据库路径，位于 `RWKV-RAG/src/services/chromaDB`
 - chroma_port: ChromaDB 端口
 - chroma_host: ChromaDB 主机 IP
-- sqlite_db_path: sqlight 数据库路径
+- sqlite_db_path: 你的 sqlight 数据库路径，位于 `RWKV-RAG/src/services/chromaDB/files_services.db`
 
-### Tuning Service
+host 和端口号等参数请按需调整。
 
-此外，Tuning Service（微调服务）的默认参数适用于 RWKV-6-1.6B 基底模型。如果你需要微调其他参数的模型，请修改 `ragq.yml` 中的 `Tuning` 参数。
+### 修改 Tuning Service 配置
 
-## Start Services
+Tuning Service 配置项主要影响 RWKV-RAG 的一键微调功能，请按需调整 host 和端口号。
 
-使用以下命令启动 RWKV-RAG 服务：
+## 启动 RWKV-RAG 服务
+
+配置文件修改完毕后。在 RWKV-RAG 目录运行以下命令，以启动 RWKV-RAG 的主服务：
 
 ```shell
 python3 service.py 
 ```
 
-## Start Client
+## 启动 WebUI 客户端
 
-使用以下命令启动 WebUI 的客户端：
+新建一个终端选项卡，使用以下命令启动 WebUI 客户端服务：
 
 ```shell
 streamlit run client.py
 ```
-在浏览器中打开 Streamlit 提供的 URL。
+在浏览器中打开 Streamlit 提供的 URL，应当可以看到如下界面，：
 
-# 使用手册
+![RWKV-RAG-WebUI-client](./docs/RWKV-RAG-WebUI-client.png)
 
-## 向量数据库管理
+至此 RWKV-RAG 服务已成功启动，可以在 WebUI 客户端中体验知识库管理、问答机器人，以及模型微调等功能。
 
-该用户界面支持 VDB 集合的搜索、集合的创建和删除，以及集合内容的管理。
+## RWKV-RAG 功能指引
 
-<div style="width: 35%; height: auto;text-align:center">
-  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86.png" alt="knowledge manager" >
-</div>
+### 知识库管理
 
-## Building knowledgebase
+知识库管理界面用于管理存储在 ChromaDB 数据库中的知识库，支持对知识库进行新增、删除和查询知识库内容等操作。
 
-该用户界面支持三种不同的方法将内容索引到知识库中：手动输入、从本地计算机上传、从本地服务器上传。
-RWKV-RAG 还支持互联网搜索，将实时数据从互联网索引到知识库中
-用户可以根据不同情况选择适当的块大小和块重叠。
+> [!TIP]  
+> 
+> 新增、删除知识库后，建议刷新 Web 页面同步最新改动。
 
-<div style="width: 35%; height: auto;text-align:center">
-  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E5%85%A5%E5%BA%93.png" alt="knowledge manager" >
-</div>
+![RWKV-RAG-WebUI-knowledge-manager](./docs/RWKV-RAG-Manage-Database.gif)
+
+### 知识入库
+
+知识入库界面用于将文本内容**分块索引**到现有的知识库中，已入库的知识可以用于问答机器人或其他服务。
+
+RWKV-RAG 支持三种不同的知识入库方法，这些方法支持解析 TXT 和 PDF 两种文件格式：
+
+- **手动输入：** 在输入框中手动输入或粘贴文本内容，每一行文本会被分到一个独立的文本块中
+- **从本地计算机上传到服务器端：** 从你的本地客户端往服务器端上传一个文件
+- **从服务器端本地上传：** 从服务器端本地上传一个文件（需要填写服务器端的文件路径）
+
+用户可以根据不同情况选择适当的文本块大小和文本块重叠字符数。
+
+> [!TIP]  
+> 
+> RWKV-RAG 也支持从互联网上搜索知识，并将搜索到的知识文本以 TXT 格式保存到**服务器端的指定目录**。
+>
+> **联网搜索得到的 txt 文本文件仍然需要知识入库，才能加入现有知识库中**
+
+![联网搜索知识](./docs/RWKV-RAG-Search-From-Internet.png)
+
+## 知识问答机器人
+
+RWKV-RAG 系统提供基于知识库的问答机器人（RWKV-RAG-CHAT）。用户可以从现有的知识库中检索特定主题的知识，然后利用提取到的知识与模型进行聊天，以增强模型的回答效果。
+
+1. **输入查询内容，点击 “召回” 按钮**
+   
+  ![RWKV-RAG-CHAT-1-Query](./docs/RWKV-RAG-CHAT-1-Query.png)
+
+2. **根据查询主题，从知识库中提取相关的知识（文本块）**
+   
+  ![RWKV-RAG-CHAT-2-Get-Text](./docs/RWKV-RAG-CHAT-2-Get-Text.png)
+
+3. **rerank 模型对提取出来的文本块进行匹配度打分，选出最佳匹配知识**
+   
+   ![RWKV-RAG-CHAT-3-Rerank](docs/RWKV-RAG-CHAT-3-Rerank.png)
+
+4. **在底部输入框中输入问题并点击 “发送” 按钮，与模型聊天**
+
+  ![RWKV-RAG-CHAT-4-Chat](./docs/RWKV-RAG-CHAT-4-Chat.png)
 
 
-## 一键微调RWKV
+RWKV-RAG-CHAT 会基于**最佳匹配知识和最近 6 回合的对话内容**，提供准确的回答。
 
-### WanDB
-请注册 WanDB 以监控微调过程的状态，特别是损失曲线。
+> [!TIP]  
+> 
+> 当前 RWKV-RAG-CHAT 的知识问答能力源于该 [State 文件](https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main)。
+> 
+> 可以通过微调训练 RWKV State 文件，使 RWKV-RAG-CHAT 更好地适应其他下游任务。
 
-在后台终端上会显示一个任务栏，用于跟踪微调过程。
 
-### 设置微调参数
+### 一键微调 RWKV
 
-在使用 1024 上下文窗口进行 RWKV 模型微调时的 VRAM 需求
+RWKV-RAG 支持 Lora 和 Pissa 等 RWKV 高效微调方法，此外也集成了一键 State Tuning 工具（一种专门针对 RWKV 的极其高效的微调方法）。
+
+请遵循以下步骤，体验 RWKV-RAG 的一键微调功能。
+
+#### 1. 准备微调数据
+
+请上传**一个 jsonl 文件**或手动输入 **jsonl 格式**的文本，作为 RWKV 微调训练数据：
+
+- Epoch：将数据重复多少次，每次复制会随机排列数据顺序
+- Context Length：度建议 1024 或 512
+
+![RWKV-RAG-Tuning-Data](./docs/RWKV-RAG-Tuning-Data.png)
+
+> [!TIP]  
+> 
+> RWKV 模型的标准数据格式，请参考：[**RWKV 教程 - 准备微调数据**](https://rwkv.cn/RWKV-Fine-Tuning/FT-Dataset)
+
+#### 2. 注册 WandB 
+
+请注册 [WandB](https://wandb.ai/) ，以监控微调过程的实时状态，特别是损失曲线。
+
+1. 注册 WandB 账号，打开设置页面
+2. 在设置中找到你的 API key ，并填写到 RWKV-RAG 中
+3. 在 WandB 中新建一个任务，并在 RWKV-RAG 中选择此任务
+
+RWKV-RAG 的后台终端上会显示一个任务栏，用于跟踪微调过程。
+
+#### 3. 设置微调参数
+
+开始微调前，请确认你是否有充足的 VRAM。
+
+以 State tuning 为例，基于 1024 上下文窗口的显存需求：
 
 | Size      | fp16       | int8       | nf4       |
 |---------------|------------|------------|-----------|
@@ -142,22 +238,11 @@ RWKV-RAG 还支持互联网搜索，将实时数据从互联网索引到知识�
 | RWKV6-3B      | 8.7GB GPU  | 6.2GB GPU  | 4.9GB GPU |
 | RWKV6-7B      | 17.8GB GPU | 11.9GB GPU | 8.5GB GPU |
 
-有关其他参数和超参数的详细解释，请参阅官方教程：https://rwkv.cn/RWKV-Fine-Tuning/State-Tuning
+在确认你有充足的 VRAN 后，请修改页面的各项训练参数。
 
-<div style="width: 35%; height: auto;text-align:center">
-  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E6%A8%A1%E5%9E%8B%E5%BE%AE%E8%B0%83.png" alt="knowledge manager" >
-</div>
+有关其他参数和超参数的详细解释，请参阅[RWKV 官方教程](https://rwkv.cn/RWKV-Fine-Tuning/State-Tuning)
 
-## RAG CHATBOT
-
-请从知识库中检索最相关的信息，然后针对这些信息提出问题。
-用户可以在 UI 上动态修改基底模型和记忆状态。
-RWKV-RAG 是一个聊天机器人，可以基于最近 6 回合对话中的所有信息提供准确的答案。
-用户可以随时更改记忆状态以适应不同的下游任务。
-
-<div style="width: 35%; height: auto;text-align:center">
-  <img src="https://raw.githubusercontent.com/AIIRWKV/RWKV_RAG/master/docs/%E7%9F%A5%E8%AF%86%E9%97%AE%E7%AD%94.png" alt="knowledge manager" >
-</div>
+![](./docs/模型微调.png)
 
 
 ## 系统设计
