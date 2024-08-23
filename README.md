@@ -25,7 +25,8 @@ git clone https://github.com/AIIRWKV/RWKV-RAG.git
 
 2. **创建 chromaDB 目录和知识库文件**
 
-依次运行以下指令，创建 chromaDB 目录和知识库文件：
+以项目路径为例，依次运行以下指令，创建 chromaDB 目录和知识库文件：
+
 
 ```bash
 cd RWKV-RAG/src/services #进入服务目录
@@ -36,6 +37,7 @@ cd chromaDB #进入 chromaDB 目录
 
 touch files_services.db #创建知识库文件
 ```
+注意，请保持知识库文件和项目路径的不一致，防止数据误删
 
 3. **安装依赖项**
    
