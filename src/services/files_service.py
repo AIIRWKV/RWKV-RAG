@@ -1,3 +1,4 @@
+import os
 import traceback
 
 import sqlite3
@@ -19,7 +20,6 @@ create_base_model_table_sql = ("create table if not exists base_model_status "
                            "status INTEGER DEFAULT 0, "  # 0 下线  1 上线
                            "create_time text NULL, "
                            "primary key(name))")
-
 
 
 valid_status = ['waitinglist','processing','processed','failed']
@@ -62,12 +62,17 @@ class FileStatusManager:
 
 
     def init_tables(self):
+        if os.path.exists(self.db_path):
+            return
         with SqliteDB(self.db_path) as db:
             db.execute(create_status_table_sql)
             db.execute(create_base_model_table_sql)
-            # 将配置文件的基底模型添加到管理界面
-            if project_config.default_base_model_path:
-                self.create_or_update_base_model('default', project_config.default_base_model_path, 1)
+            try:
+                # 将配置文件的基底模型添加到管理界面
+                if project_config.default_base_model_path:
+                    self.create_or_update_base_model('default', project_config.default_base_model_path, 1)
+            except:
+                pass
 
     def add_file(self,file_path,collection_name):
         with SqliteDB(self.db_path) as db:
@@ -129,6 +134,12 @@ class FileStatusManager:
                 db.execute(f"select name,path,status, create_time from base_model_status")
                 result = db.fetchall()
                 return result
+
+    def get_base_model_name_by_path(self,path):
+        with SqliteDB(self.db_path) as db:
+            db.execute(f"select name from base_model_status where path = ? and status = 1",(path,))
+            result = db.fetchone()
+            return result[0] if result else None
 
     def active_base_model(self,name):
         with SqliteDB(self.db_path) as db:

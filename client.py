@@ -1,6 +1,7 @@
 import os
 import asyncio
 import re
+from collections import OrderedDict
 
 import streamlit as st
 import pandas as pd
@@ -13,7 +14,6 @@ from src.utils.make_data import get_random_string
 from src.clients.tuning_client import TuningClient
 from src.services import FileStatusManager
 from configuration import config as project_config
-
 
 current_path = os.path.dirname(os.path.abspath(__file__)) # 工程当前目录
 parent_dir = os.path.dirname(current_path)  # 上一级
@@ -32,9 +32,6 @@ if not os.path.exists(default_tuning_path):
 default_tuning_model_path = os.path.join(default_knowledge_base_dir, "tuning_model")
 if not os.path.exists(default_tuning_model_path):
     os.makedirs(default_tuning_model_path)
-
-
-
 
 
 
@@ -68,6 +65,7 @@ def set_page_style():
         </style>
         """,
         unsafe_allow_html=True)
+
 
 
 def knowledgebase_manager(index_client: IndexClient, file_client: FileStatusManager):
@@ -484,10 +482,16 @@ def tuning_manager(client: TuningClient, app_scenario):
                               lora_dropout=lora_dropout, lora_parts=lora_parts, wandb=my_wandb)
 
 
-def base_model_manager(file_client: FileStatusManager):
+def base_model_manager(file_client: FileStatusManager,llm_client:LLMClient, current_base_model_name):
     st.title("模型管理")
-    st.subheader("基底模型列表")
+    st.subheader("重启基底模型")
+    st.markdown(
+        '<span style="font-size: 16px; color: blue;">❗如果更换了基底模型可能影响到正在执行的任务。 更换后下次重启服务时基底模型就是本次更该后的模型</span>',
+        unsafe_allow_html=True)
+    st.write('当前基底模型: %s (%s)' % (current_base_model_name, project_config.default_base_model_path))
+
     base_model_list  = file_client.get_base_model_list()
+    active_base_models = OrderedDict()
     if base_model_list:
         names = []
         paths = []
@@ -496,8 +500,32 @@ def base_model_manager(file_client: FileStatusManager):
         for line in base_model_list:
             names.append(line[0])
             paths.append(line[1])
-            statuss.append('上线' if line[2] == 1 else '下线')
+            if line[2] == 1:
+                active_base_models.setdefault(line[0], line[1])
+                statuss.append('上线')
+            else:
+                statuss.append('下线')
             create_times.append(line[3])
+    else:
+        names = ['default']
+
+    reload_base_model_name = st.selectbox("请选择要重启的基底模型:", [''] + list(active_base_models.keys()))
+    if st.button("重启") and reload_base_model_name:
+        new_base_model_path = active_base_models[reload_base_model_name]
+        if llm_client:
+            llm_client.reload_base_model(new_base_model_path)
+            st.success('重启成功')
+            project_config.set_llm_service_config(base_model_path=new_base_model_path)
+        else:
+            st.warning("LLM 服务未开启")
+
+
+    if reload_base_model_name == current_base_model_name:
+        st.warning("需要重启的基底模型与当前基底模型一样。")
+
+
+    st.subheader("基底模型列表")
+    if base_model_list:
         df = pd.DataFrame({'名称': names, '路径': paths, '状态': statuss, '创建时间': create_times})
         st.dataframe(df, use_container_width=True)
     else:
@@ -554,7 +582,7 @@ def main():
     # 初始化客户端
 
     tabs_title = ["模型管理", "知识库管理", "知识入库", "模型微调", "知识问答"]
-    tabs_title_enabled = [project_config.config.get('index', {}).get('enabled'),
+    tabs_title_enabled = [True, project_config.config.get('index', {}).get('enabled'),
                           project_config.config.get('index', {}).get('enabled'),
                           project_config.config.get('tuning', {}).get('enabled'),
                           project_config.config.get('llm', {}).get('enabled')]
@@ -583,33 +611,30 @@ def main():
             collection_name_list = [i[0] for i in collections.get('value', [])]
         else:
             collection_name_list = []
-        base_model_list = file_status_manager.get_base_model_list(just_name=True)
-        # if st.session_state.get('kb_name'):
-        #     print('ttddddddd')
-        #     for i, j in enumerate(collection_name_list):
-        #         if j == st.session_state.kb_name:
-        #            _index = i
-        # else:
-        #     _index = 0
-       # print(st.session_state)
+        default_base_model_name = file_status_manager.get_base_model_name_by_path(project_config.default_base_model_path) or 'default'
         st.session_state.kb_name = st.selectbox("正在使用的知识库", collection_name_list, )
-        st.session_state.base_model_path = st.selectbox('基底RWKV模型', base_model_list)
+        st.session_state.base_model_path = st.selectbox('基底RWKV模型', [default_base_model_name])
         st.session_state.state_file_path = st.selectbox("记忆状态", [project_config.default_state_path])
+    if tabs_title_enabled[4]:
+        llm_client = LLMClient("tcp://localhost:7781")
+    else:
+        llm_client = None
     if app_scenario == tabs_title[0]:
-        base_model_manager(file_status_manager)
+        base_model_manager(file_status_manager,llm_client, default_base_model_name)
+
     elif app_scenario == tabs_title[1]:
-        if tabs_title_enabled[0]:
+        if tabs_title_enabled[1]:
             knowledgebase_manager(index_client, file_status_manager)
         else:
             st.write("配置文件里没开启该功能")
     elif app_scenario == tabs_title[2]:
-        if tabs_title_enabled[1]:
+        if tabs_title_enabled[2]:
             internet_search(index_client, file_status_manager)
         else:
             st.write("配置文件里没开启该功能")
     elif app_scenario == tabs_title[3]:
         # 在这里添加微调选项卡的内容
-        if tabs_title_enabled[2]:
+        if tabs_title_enabled[3]:
             st.title("模型微调")
             tuning_client = TuningClient('tcp://localhost:7787')
             jsonl2binidx_manager(tuning_client)
@@ -620,7 +645,6 @@ def main():
     else:
         if tabs_title_enabled[4]:
             st.title("知识问答")
-            llm_client = LLMClient("tcp://localhost:7781")
             rag_chain(index_client, llm_client)
         else:
             st.write("配置文件里没开启该功能")

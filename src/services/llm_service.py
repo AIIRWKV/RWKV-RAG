@@ -87,6 +87,7 @@ class LLMService:
         if not os.path.exists(base_model_path):
             raise FileNotFoundError(f'Model not found at {base_model_path}')
         if base_model_path == self._current_base_model_path and self.model:
+            print('rrrrrrrrrrrrrrrrrrrrrllllllllllllllllllyyyyyyyyyyyy')
             return
         # 清除 GPU 缓存
         if torch.cuda.is_available():
@@ -95,6 +96,7 @@ class LLMService:
         self._current_states_value = []
         gc.collect()
         strategy = self.kwargs.get('strategy', 'cuda fp16')
+        print(base_model_path, 'dfddddddfswfffasfafa')
         self.model = OriginRWKV(base_model_path, strategy=strategy)
         self._current_base_model_path = base_model_path
 
@@ -219,6 +221,10 @@ class ServiceWorker(AbstractServiceWorker):
             base_model_path = cmd.get('base_model_path')
             value = self.llm_service.sampling_generate(instruction, input_text, state_file,temperature,top_p,
                                                        template_prompt=template_prompt, base_model_path=base_model_path)
-            return value       
+            return value
+        elif cmd['cmd'] == 'RELOAD_BASE_MODEL':
+            base_model_path = cmd.get("base_model_path")
+            self.llm_service.reload_base_model(base_model_path)
+            return 'ok'
         return ServiceWorker.UNSUPPORTED_COMMAND
 

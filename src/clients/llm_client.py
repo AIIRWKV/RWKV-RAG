@@ -53,3 +53,13 @@ class LLMClient:
         msg = self.socket.recv()
         resp = msgpack.unpackb(msg, raw=False)
         return resp
+
+
+    def reload_base_model(self, base_model_path):
+        cmd = {
+            "cmd": "RELOAD_BASE_MODEL",
+            "base_model_path": base_model_path
+        }
+        self.socket.send(msgpack.packb(cmd, use_bin_type=True))
+        self.socket.recv()
+        return True

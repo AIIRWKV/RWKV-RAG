@@ -12,6 +12,7 @@ class Configuration:
                 self.config = yaml.safe_load(f)
             except yaml.YAMLError as exc:
                 raise ValueError(f"Invalid config file {config_file}")
+        self.config_file_path = config_file
         self.default_base_model_path = ''  # 默认基座模型路径
         self.default_bgem3_path = ''  # 默认bgem3路径
         self.default_rerank_path = ''  # 默认rerank路径
@@ -85,6 +86,25 @@ class Configuration:
         if not os.path.exists(sqlite_db_path_dir):
             raise NotADirectoryError(f"sqlite_db_path {sqlite_db_path_dir} not found for {key}")
 
-
+    def set_llm_service_config(self, base_model_path=None, embedding_path=None, reranker_path=None, state_path=None):
+        is_save = False
+        if base_model_path and base_model_path != self.default_base_model_path:
+            self.default_base_model_path = base_model_path
+            self.config['llm']['base_model_path'] = base_model_path
+            is_save = True
+        if embedding_path and embedding_path != self.default_bgem3_path:
+            self.default_bgem3_path = embedding_path
+            self.config['llm']['embedding_path'] = embedding_path
+            is_save = True
+        if reranker_path and reranker_path != self.default_rerank_path:
+            self.default_rerank_path = reranker_path
+            self.config['llm']['reranker_path'] = reranker_path
+        if state_path and state_path != self.default_state_path:
+            self.default_state_path = state_path
+            self.config['llm']['state_path'] = state_path
+            is_save = True
+        if is_save:
+            with open(self.config_file_path, "w") as f:
+                yaml.dump(self.config, f)
 
 config = Configuration("ragq.yml")
