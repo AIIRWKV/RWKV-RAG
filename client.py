@@ -7,7 +7,7 @@ import pandas as pd
 
 from src.clients.index_client import IndexClient
 from src.clients.llm_client import LLMClient
-from src.utils.loader import load_and_split_text
+from src.utils.loader import Loader
 from src.utils.internet import search_on_baike
 from src.utils.make_data import get_random_string
 from src.clients.tuning_client import TuningClient
@@ -196,7 +196,7 @@ def internet_search(index_client: IndexClient, file_client: FileStatusManager):
 
         input_path = st.text_input("请输入知识库路径:", key="input_path_key")
         chunk_size = st.number_input("请输入块大小（字符数）:", min_value=1, value=512, key="chunk_size_key")
-        chunk_overlap = st.number_input("请输入块重叠（字符数）:", min_value=1, value=8, key="chunk_overlap_key")
+        chunk_overlap = st.number_input("请输入块重叠（字符数）:", min_value=0, value=0, key="chunk_overlap_key")
         output_path = st.text_input("请输入输出目录路径(:red[可更改]):",default_knowledge_base_dir, key="output_path_key")
 
         # 加载按钮
@@ -204,27 +204,30 @@ def internet_search(index_client: IndexClient, file_client: FileStatusManager):
         if load_button and input_path and output_path:
             if not os.path.exists(input_path):
                 st.warning(f"知识库{input_path}不存在")
-            elif os.path.isdir(input_path):
-                st.warning(f"知识库{input_path}是目录,暂时只支持单个文件")
-
             if not os.path.exists(output_path):
                 st.warning(f"{output_path}不存在")
             elif not os.path.isdir(output_path):
                 st.warning(f"{output_path}不是目录")
 
             try:
-                # 调用load_and_split_text函数，并根据需要调整参数
-                chunks, chunk_output_file = load_and_split_text(input_path, output_path, chunk_size, chunk_overlap)
-                st.success(f"文件已加载并分割完成！分割后文件路径:{chunk_output_file}")
+                loader = Loader(input_path, chunk_size, chunk_overlap)
             except Exception as e:
-                chunks = []
+                loader = None
                 st.warning("文件加载和分割过程中出现错误:" + str(e))
-            for idx,chunk in enumerate(chunks):
-                result = index_client.index_texts([chunk], collection_name=st.session_state.kb_name)
-                st.write(f"文本 {idx + 1}: {result}")
+            is_success = False
+            if loader:
+                chunks= loader.load_and_split_file(output_path)
+
+                for idx,chunk in enumerate(chunks):
+                    index_client.index_texts([chunk], collection_name=st.session_state.kb_name)
+                st.success(f"文件已加载并分割完成！分割后文件路径:{loader.output_files}")
+                is_success = True
+
             # 记录文件入库状态
-            if chunks and not file_client.check_file_exists(input_path, st.session_state.kb_name):
-                file_client.add_file(input_path, st.session_state.kb_name)
+            if is_success:
+                for path in loader.output_files:
+                    if not file_client.check_file_exists(path, st.session_state.kb_name):
+                        file_client.add_file(path, st.session_state.kb_name)
 
         elif load_button:
             st.warning("参数不能为空。")
@@ -251,20 +254,23 @@ def internet_search(index_client: IndexClient, file_client: FileStatusManager):
             input_path = st.session_state.now_upload_file
             if load_button:
                 try:
-                    # 调用load_and_split_text函数，并根据需要调整参数
-                    chunks, chunk_output_file = load_and_split_text(input_path, default_upload_knowledge_base_dir, chunk_size, chunk_overlap)
-                    st.success(f"文件已加载并分割完成！分割后文件路径:{chunk_output_file}")
+                    loader = Loader(input_path, chunk_size, chunk_overlap)
                 except Exception as e:
-                    chunks = []
+                    loader = None
                     st.warning("文件加载和分割过程中出现错误:" + str(e))
-                for idx,chunk in enumerate(chunks):
-                    result = index_client.index_texts([chunk], collection_name=st.session_state.kb_name)
-                    st.write(f"文本 {idx + 1}: {result}")
+                is_success = False
+                if loader:
+                    chunks = loader.load_and_split_file(default_upload_knowledge_base_dir)
+
+                    for idx,chunk in enumerate(chunks):
+                        index_client.index_texts([chunk], collection_name=st.session_state.kb_name)
+                    st.success(f"文件已加载并分割完成！分割后文件路径:{loader.output_files}")
+                    is_success = True
                 # 记录文件入库状态
-                if chunks and not file_client.check_file_exists(input_path, st.session_state.kb_name):
-                    file_client.add_file(input_path, st.session_state.kb_name)
-
-
+                if is_success:
+                    for path in loader.output_files:
+                        if not file_client.check_file_exists(path, st.session_state.kb_name):
+                            file_client.add_file(path, st.session_state.kb_name)
 
 
 
@@ -288,7 +294,7 @@ def rag_chain(index_client: IndexClient, llm_client: LLMClient):
         st.write(f"Best Match: {best_match}")
         st.session_state.best_match = best_match
 
-    st.subheader('RWKV_RAG_CHAT')
+    st.subheader('RWKV-RAG-CHAT')
 
     if "chat_messages" not in st.session_state:
         st.session_state.chat_messages = []
@@ -478,10 +484,76 @@ def tuning_manager(client: TuningClient, app_scenario):
                               lora_dropout=lora_dropout, lora_parts=lora_parts, wandb=my_wandb)
 
 
+def base_model_manager(file_client: FileStatusManager):
+    st.title("模型管理")
+    st.subheader("基底模型列表")
+    base_model_list  = file_client.get_base_model_list()
+    if base_model_list:
+        names = []
+        paths = []
+        statuss = []
+        create_times = []
+        for line in base_model_list:
+            names.append(line[0])
+            paths.append(line[1])
+            statuss.append('上线' if line[2] == 1 else '下线')
+            create_times.append(line[3])
+        df = pd.DataFrame({'名称': names, '路径': paths, '状态': statuss, '创建时间': create_times})
+        st.dataframe(df, use_container_width=True)
+    else:
+        names = ['default']
+        st.warning("没有找到基底模型。请先添加基底模型")
+
+    st.subheader("新增基底模型")
+    new_base_model_name = st.text_input("请输入基底模型的名称(唯一):", key='new_base_model_name')
+    new_base_model_path = st.text_input("请输入基底模型的路径:", key='new_base_model_path')
+
+    if st.button('添加'):
+        if new_base_model_name:
+           if not 3 <= len(new_base_model_name) <= 64:
+               st.warning("基底模型的名称长度必须在3到64个字符之间。")
+        else:
+            st.warning("请输入基底模型名称。")
+        if new_base_model_path:
+            if not os.path.exists(new_base_model_path):
+                st.warning("基底模型的路径不存在。")
+        else:
+            st.warning("请输入基底模型路径。")
+
+        code= file_client.add_base_model(new_base_model_name, new_base_model_path)
+        if code == 0:
+            st.warning(f"基底模型{new_base_model_name}已存在")
+        else:
+            st.success("基底模型添加成功。")
+    st.subheader('修改基底模型')
+    change_base_model_name = st.selectbox("请选择基底模型:", [''] + names, key='change_base_model_name')
+    change_base_model_path = st.text_input("请输入基底模型的路径:", key='change_base_model_path')
+    if st.button('修改') and change_base_model_name and change_base_model_path:
+        file_client.change_base_model(change_base_model_name, change_base_model_path)
+        st.success("基底模型修改成功。")
+
+    st.subheader("激活基底模型")
+    st.markdown(
+        '<span style="font-size: 16px; color: blue;">状态是上线的基底模型才能使用</span>',
+        unsafe_allow_html=True)
+    active_base_model_name = st.selectbox("请选择基底模型:", [''] + names, key='active_base_model_name')
+    if st.button('激活') and active_base_model_name:
+        file_client.active_base_model(active_base_model_name)
+        st.success("基底模型激活成功。")
+
+    st.subheader("下线基底模型")
+    offline_base_model_name = st.selectbox("请选择基底模型:", [''] + names, key='offline_base_model_name')
+    if offline_base_model_name == 'default':
+        st.warning("default 模型不能下线，可以通过修改default模型的路径来实现你的需求。")
+    if st.button('下线') and offline_base_model_name:
+        file_client.offline_base_model(offline_base_model_name)
+        st.success("基底模型下线成功。")
+
+
 def main():
     # 初始化客户端
 
-    tabs_title = ["知识库管理", "知识入库", "模型微调", "知识问答"]
+    tabs_title = ["模型管理", "知识库管理", "知识入库", "模型微调", "知识问答"]
     tabs_title_enabled = [project_config.config.get('index', {}).get('enabled'),
                           project_config.config.get('index', {}).get('enabled'),
                           project_config.config.get('tuning', {}).get('enabled'),
@@ -511,21 +583,31 @@ def main():
             collection_name_list = [i[0] for i in collections.get('value', [])]
         else:
             collection_name_list = []
-        st.session_state.kb_name = st.selectbox("正在使用的知识库", collection_name_list)
-        st.session_state.base_model_path = st.selectbox('基底RWKV模型', [project_config.default_base_model_path])
+        base_model_list = file_status_manager.get_base_model_list(just_name=True)
+        # if st.session_state.get('kb_name'):
+        #     print('ttddddddd')
+        #     for i, j in enumerate(collection_name_list):
+        #         if j == st.session_state.kb_name:
+        #            _index = i
+        # else:
+        #     _index = 0
+       # print(st.session_state)
+        st.session_state.kb_name = st.selectbox("正在使用的知识库", collection_name_list, )
+        st.session_state.base_model_path = st.selectbox('基底RWKV模型', base_model_list)
         st.session_state.state_file_path = st.selectbox("记忆状态", [project_config.default_state_path])
-
     if app_scenario == tabs_title[0]:
+        base_model_manager(file_status_manager)
+    elif app_scenario == tabs_title[1]:
         if tabs_title_enabled[0]:
             knowledgebase_manager(index_client, file_status_manager)
         else:
             st.write("配置文件里没开启该功能")
-    elif app_scenario == tabs_title[1]:
+    elif app_scenario == tabs_title[2]:
         if tabs_title_enabled[1]:
             internet_search(index_client, file_status_manager)
         else:
             st.write("配置文件里没开启该功能")
-    elif app_scenario == tabs_title[2]:
+    elif app_scenario == tabs_title[3]:
         # 在这里添加微调选项卡的内容
         if tabs_title_enabled[2]:
             st.title("模型微调")
@@ -536,7 +618,7 @@ def main():
         else:
             st.write("配置文件里没开启该功能")
     else:
-        if tabs_title_enabled[3]:
+        if tabs_title_enabled[4]:
             st.title("知识问答")
             llm_client = LLMClient("tcp://localhost:7781")
             rag_chain(index_client, llm_client)
