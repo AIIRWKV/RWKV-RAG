@@ -4,7 +4,7 @@
 
 
 
-llm:
+llm: #大模型服务配置项
   enabled: true
   service_module: llm_service
   front_end:
@@ -15,14 +15,14 @@ llm:
     host: localhost
     protocol: tcp
     port: 7782
-  num_workers: 1
+  num_workers: 1 #服务使用的显卡数量
   spawn_method: spawn
-  base_model_path: /home/rwkv/Peter/model/base/RWKV-x060-World-7B-v2.1-20240507-ctx4096.pth
-  embedding_path: /home/rwkv/Peter/model/bi/bge-m31
-  reranker_path: /home/rwkv/Peter/model/bi/BAAIbge-reranker-v2-m3
-  state_path: /home/rwkv/Peter/model/state/qa/rwkv-2.pth
-  device: cuda:3
-index:
+  base_model_file: /home/rwkv/Peter/model/base/RWKV-x060-World-7B-v2.1-20240507-ctx4096.pth # RWKV base model 路径
+  bgem3_path: /home/rwkv/Peter/model/bi/bge-m31 # embedding model 路径
+  rerank_path: /home/rwkv/Peter/model/bi/BAAIbge-reranker-v2-m3 # rerank model 路径
+  state_path: /home/rwkv/Peter/model/state/qa/rwkv-2.pth # State file 路径
+  device: cuda:3 #如果你只有一张显卡，填 cuda:0
+index: #知识库服务配置项
   enabled: true
   service_module: index_service
   front_end:
@@ -33,13 +33,13 @@ index:
     host: localhost
     protocol: tcp
     port: 7784
-  chroma_path: /home/rwkv/Peter/RaqQ-master/src/services/chroma
+  chroma_path: /home/rwkv/Peter/RaqQ-master/src/services/chroma #知识库储存路径
   chroma_port: 9999
   chroma_host: localhost
-  sqlite_db_path: /home/rwkv/Peter/RaqQ-master/src/services/chroma/files_services.db
+  sqlite_db_path: /home/rwkv/Peter/RaqQ-master/src/services/chroma/files_services.db #知识库的向量数据库储存地址
   num_workers: 4
   llm_front_end_url: tcp://localhost:7781
-tuning:
+tuning: # 微调服务配置项
   enabled: true
   service_module: tuning_service
   front_end:
