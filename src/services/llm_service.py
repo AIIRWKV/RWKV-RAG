@@ -87,7 +87,6 @@ class LLMService:
         if not os.path.exists(base_model_path):
             raise FileNotFoundError(f'Model not found at {base_model_path}')
         if base_model_path == self._current_base_model_path and self.model:
-            print('rrrrrrrrrrrrrrrrrrrrrllllllllllllllllllyyyyyyyyyyyy')
             return
         # 清除 GPU 缓存
         if torch.cuda.is_available():

@@ -1,4 +1,5 @@
 import os
+import threading
 import traceback
 
 import sqlite3
@@ -20,6 +21,10 @@ create_base_model_table_sql = ("create table if not exists base_model_status "
                            "status INTEGER DEFAULT 0, "  # 0 下线  1 上线
                            "create_time text NULL, "
                            "primary key(name))")
+
+create_using_base_model_table_sql = ("create table if not exists base_model_using_base_model "
+                                     "(id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                                     "name text NOT NULL)")
 
 
 valid_status = ['waitinglist','processing','processed','failed']
@@ -56,21 +61,37 @@ class SqliteDB:
 
 
 class FileStatusManager:
+
+    init_once = False
+    lock = threading.Lock()
     def __init__(self,db_path) -> None:
         self.db_path = db_path
-        self.init_tables()
+        with FileStatusManager.lock:
+            if not FileStatusManager.init_once:
+                self.init_tables()
+                FileStatusManager.init_once = True
 
 
     def init_tables(self):
-        if os.path.exists(self.db_path):
-            return
         with SqliteDB(self.db_path) as db:
             db.execute(create_status_table_sql)
             db.execute(create_base_model_table_sql)
+            db.execute(create_using_base_model_table_sql)
             try:
                 # 将配置文件的基底模型添加到管理界面
-                if project_config.default_base_model_path:
+                db_base_model = self.get_using_base_model()
+                config_base_model_name = self.get_base_model_name_by_path(project_config.default_base_model_path)
+                if not db_base_model and config_base_model_name:
+                    self.create_or_update_using_base_model(config_base_model_name, None)
+                elif not db_base_model and not config_base_model_name:
                     self.create_or_update_base_model('default', project_config.default_base_model_path, 1)
+                    self.create_or_update_using_base_model('default', None)
+                elif db_base_model and not config_base_model_name:
+                    self.create_or_update_base_model('default', project_config.default_base_model_path, 1)
+                    self.create_or_update_using_base_model('default', db_base_model[0])
+                else:
+                    if db_base_model[1] != config_base_model_name:
+                        self.create_or_update_using_base_model(config_base_model_name, db_base_model[0])
             except:
                 pass
 
@@ -150,3 +171,27 @@ class FileStatusManager:
         with SqliteDB(self.db_path) as db:
             db.execute(f"update base_model_status set status = 0 where name = ?",(name,))
             return 1
+
+    def get_using_base_model(self):
+        with SqliteDB(self.db_path) as db:
+            db.execute(f"select id, name from base_model_using_base_model order by id ASC limit 1")
+            result = db.fetchone()
+            return result if result else None
+
+    def create_or_update_using_base_model(self, name, model_id=None):
+        if model_id is None:
+            result = self.get_using_base_model()
+            if result is None:
+                with SqliteDB(self.db_path) as db:
+                    db.execute(f"insert into base_model_using_base_model (name) values (?)",(name,))
+                    return 1
+            else:
+                model_id = result[0]
+                if name != result[1]:
+                    with SqliteDB(self.db_path) as db:
+                        db.execute(f"update base_model_using_base_model set name = ? where id = ?",(name,model_id))
+                        return 1
+        else:
+            with SqliteDB(self.db_path) as db:
+                db.execute(f"update base_model_using_base_model set name = ? where id = ?",(name,model_id))
+                return 1

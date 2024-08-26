@@ -516,6 +516,7 @@ def base_model_manager(file_client: FileStatusManager,llm_client:LLMClient, curr
             llm_client.reload_base_model(new_base_model_path)
             st.success('重启成功')
             project_config.set_llm_service_config(base_model_path=new_base_model_path)
+            file_client.create_or_update_using_base_model(reload_base_model_name)
         else:
             st.warning("LLM 服务未开启")
 

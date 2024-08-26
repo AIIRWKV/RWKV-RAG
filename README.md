@@ -23,21 +23,9 @@ RWKV-RAG 使用的模型针对中文数据集进行调优，因此在中文任�
 git clone https://github.com/AIIRWKV/RWKV-RAG.git
 ```
 
-2. **创建 chromaDB 目录和知识库文件**
+2. **修改配置文件**
 
-以项目路径为例，依次运行以下指令，创建 chromaDB 目录和知识库文件：
-
-
-```bash
-cd RWKV-RAG/src/services #进入服务目录
-
-mkdir chromaDB #创建 chromaDB 目录
-
-cd chromaDB #进入 chromaDB 目录
-
-touch files_services.db #创建知识库文件
-```
-注意，请保持知识库文件和项目路径的不一致，防止数据误删
+参考 [**修改配置文件**](#修改配置文件)
 
 3. **安装依赖项**
    
@@ -88,15 +76,15 @@ pip install -r requirements.txt
 
 ## 修改配置文件
 
-RWKV-RAG 默认启用 LLM Service（大模型） 、Index Service（知识库索引）和 Tuning Service（一键微调）三种服务。可以通过修改项目配置文件 `ragq.yml` ，以启用或禁用某一项服务。
+RWKV-RAG 默认启用 LLM Service（**大模型生成服务**） 、Index Service（**数据索引及检索服务**）和 Tuning Service（**一键微调服务**）三种服务。可以通过修改项目配置文件 `ragq.yml` 以启用或禁用某一项服务。
 
 ### 修改 LLM Service 配置
 
 LLM service 配置项会影响 RWKV-RAG 系统的嵌入、重排序和问答机器人（RWKV-RAG-CHAT）等服务。重点关注以下配置项：
 
-- base_model_file: RWKV 基底模型的路径，请参考 [RWKV 模型下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B) 
-- bgem3_path: 嵌入模型的路径，推荐使用: bge-m31
-- rerank_path: 重排序模型的路径，推荐使用: BAAIbge-reranker-v2-m3
+- base_model_path: RWKV 基底模型的路径，请参考 [RWKV 模型下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B) 
+- embedding_path: 嵌入模型的路径，推荐使用: bge-m31
+- reranker_path: 重排序模型的路径，推荐使用: BAAIbge-reranker-v2-m3
 - state_path:  State 文件的路径
 - num_workers: LLM 服务使用的显卡数量
 - device: 指定 LLM 运行的 GPU ，如果你只有一张显卡则改为 cuda:0
@@ -107,10 +95,10 @@ host 和端口号等参数请按需调整。
 
 Index Service 配置项会影响 RWKV-RAG 系统的知识库管理等 ChromaDB 数据库相关服务。请重点关注以下配置项：
 
-- chroma_db_path: 你的 ChromaDB 数据库路径，位于 `RWKV-RAG/src/services/chromaDB`
+- chroma_db_path: ChromaDB 数据库存放数据路径
 - chroma_port: ChromaDB 端口
 - chroma_host: ChromaDB 主机 IP
-- sqlite_db_path: 你的 sqlight 数据库路径，位于 `RWKV-RAG/src/services/chromaDB/files_services.db`
+- sqlite_db_path: sqlite数据库存放数据路径
 
 host 和端口号等参数请按需调整。
 
@@ -120,7 +108,7 @@ Tuning Service 配置项主要影响 RWKV-RAG 的一键微调功能，请按需�
 
 ## 启动 RWKV-RAG 服务
 
-配置文件修改完毕后。在 RWKV-RAG 目录运行以下命令，以启动 RWKV-RAG 的主服务：
+模型下载好后并且配置文件修改完毕后。在 RWKV-RAG 目录运行以下命令，以启动 RWKV-RAG 的主服务：
 
 ```shell
 python3 service.py 
@@ -128,7 +116,7 @@ python3 service.py
 
 ## 启动 WebUI 客户端
 
-新建一个终端选项卡，使用以下命令启动 WebUI 客户端服务：
+RWKV-RAG目前是使用streamlit框架开发WebUI客户端，启动命令如下：
 
 ```shell
 streamlit run client.py
@@ -142,13 +130,24 @@ streamlit run client.py
 
 ## RWKV-RAG 功能指引
 
-### 知识库管理
-
-知识库管理界面用于管理存储在 ChromaDB 数据库中的知识库，支持对知识库进行新增、删除和查询知识库内容等操作。
+### 模型管理
+模型管理界面用于管理 RWKV-RAG 系统的基底模型。支持对基底模型进行添加、修改、上线、下线和重启等操作。
 
 > [!TIP]  
 > 
-> 新增、删除知识库后，建议刷新 Web 页面同步最新改动。
+> 上线状态的模型才能被使用；下线状态的模型不能被使用。
+> 
+> 重启模型时会影响到正在执行的任务；模型重启后，如果不更改配置文件的基底模型参数base_model_path的值，则后续重启服务时都是用本次更改后的模型作为默认基底模型。
+
+![RWKV-RAG-WebUI-knowledge-manager](./docs/RWKV-RAG-Manage-Database.gif)
+
+### 知识库管理
+
+知识库管理界面用于管理存储在 ChromaDB 数据库中的知识库，一个collection就是一个知识库，服务启动时默认都会创建一个名为initial的知识库。支持对知识库进行新增、删除和查询知识库内容等操作。
+
+> [!TIP]  
+> 
+> 由于Streamlit架构的限制，新增、删除知识库后，建议刷新 Web 页面同步最新改动。
 
 ![RWKV-RAG-WebUI-knowledge-manager](./docs/RWKV-RAG-Manage-Database.gif)
 
@@ -158,13 +157,16 @@ streamlit run client.py
 
 知识入库界面用于将文本内容**分块索引**到现有的知识库中，已入库的知识可以被检索，用于问答机器人或其他下游服务。
 
-RWKV-RAG 支持三种不同的知识入库方法，这些方法支持解析 TXT 和 PDF 两种文件格式：
+RWKV-RAG 支持三种不同的知识入库方法，这些方法支持解析 TXT、PDF和Excel 三种文件格式：
 
-- **手动输入：** 在输入框中手动输入或粘贴文本内容，每一行文本会被分到一个独立的文本块中
-- **从本地计算机上传到服务器端：** 从你的本地客户端往服务器端上传一个文件
-- **从服务器端本地上传：** 从服务器端本地上传一个文件（需要填写服务器端的文件路径）
+- **手动输入：** 在输入框中手动输入或粘贴文本内容，系统会按行对文本进行Chunking（**分块**）
+- **从本地计算机上传到服务器端：** 从你的本地客户端往服务器端上传一个文件，系统会按照固定长度和块重叠字符数对文件进行Chunking（**分块**）
+- **从服务器端本地上传：** 如果你需要将服务器中**某个文件**或者**某个目录**下所有文件的内容加入知识库，填写文件或者目录的路径，系统会按照固定长度和块重叠字符数对文件进行Chunking（**分块**）
 
-用户可以根据不同情况选择适当的文本块大小和文本块重叠字符数。
+
+> [!WARNING]  
+> 
+> 支持文本格式或图片格式的PDF文件入库，但是需要提前安装**tesseract**，并需要安装中文语言包(**chi_sim**)
 
 > [!TIP]  
 > 
@@ -253,7 +255,7 @@ RWKV-RAG 的后台终端上会显示一个任务栏，用于跟踪微调过程�
 
 有关训练参数和超参数的详细解释，请参阅[RWKV 教程 - 微调参数](https://rwkv.cn/RWKV-Fine-Tuning/State-Tuning)
 
-![](./docs/模型微调.png)
+![](./docs/RWKV-RAG-Tuning-Service-Mange.png)
 
 
 ## 系统设计

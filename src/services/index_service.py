@@ -49,7 +49,7 @@ class ServiceWorker(AbstractServiceWorker):
 
     @staticmethod
     def init_once(config):
-        # 检测记录文件状态的sqlite的数据表是否穿件
+        # 检测记录文件状态的sqlite的数据表是否创建
 
         # 检测chroma db是否已启动
         command1 = "ps -ef | grep '{}'".format("chroma")
