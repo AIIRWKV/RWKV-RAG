@@ -139,7 +139,7 @@ streamlit run client.py
 > 
 > 重启模型时会影响到正在执行的任务；模型重启后，如果不更改配置文件的基底模型参数base_model_path的值，则后续重启服务时都是用本次更改后的模型作为默认基底模型。
 
-![RWKV-RAG-WebUI-knowledge-manager](./docs/RWKV-RAG-Manage-Database.gif)
+![RWKV-RAG-Base-Model-Manage](./docs/RWKV-RAG-Base-Model-Manage.png)
 
 ### 知识库管理
 
