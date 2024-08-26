@@ -1,3 +1,6 @@
+numpy==1.26.4
+packaging==24.1
+torch==2.2.2
 beautifulsoup4==4.12.3
 bitsandbytes==0.43.1
 causal_conv1d==1.4.0
@@ -7,8 +10,6 @@ einops==0.8.0
 PyMuPDF==1.24.4
 FlagEmbedding==1.2.10
 msgpack_python==0.5.6
-numpy==1.26.4
-packaging==24.1
 pandas==2.2.2
 playwright==1.44.0
 pytorch_lightning==1.9.5
@@ -16,7 +17,6 @@ PyYAML==6.0.1
 pyzmq==26.0.3
 rwkv==0.8.26
 streamlit==1.35.0
-torch==2.2.2
 transformers==4.42.3
 triton==2.2.0
 wandb==0.17.6

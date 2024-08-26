@@ -95,8 +95,8 @@ RWKV-RAG 默认启用 LLM Service（大模型） 、Index Service（知识库索
 LLM service 配置项会影响 RWKV-RAG 系统的嵌入、重排序和问答机器人（RWKV-RAG-CHAT）等服务。重点关注以下配置项：
 
 - base_model_file: RWKV 基底模型的路径，请参考 [RWKV 模型下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B) 
-- bgem3_path: 嵌入模型的路径，推荐使用: bge-m31
-- rerank_path: 重排序模型的路径，推荐使用: BAAIbge-reranker-v2-m3
+- embedding_path: 嵌入模型的路径 (HF模型文件夹)，推荐使用: bge-m3
+- reranker_path: 重排序模型的路径 (HF模型文件夹)，推荐使用: BAAIbge-reranker-v2-m3
 - state_path:  State 文件的路径
 - num_workers: LLM 服务使用的显卡数量
 - device: 指定 LLM 运行的 GPU ，如果你只有一张显卡则改为 cuda:0
