@@ -9,7 +9,7 @@ class IndexClient:
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
         self.socket.connect(frontend_url)
-        self.socket.setsockopt(zmq.RCVTIMEO, 60000)
+        self.socket.setsockopt(zmq.RCVTIMEO, 60000 * 5)
 
     def index_texts(self,texts,keys=None,collection_name=None):
         if keys is None or isinstance(keys, list) is False or len(keys) != len(texts):

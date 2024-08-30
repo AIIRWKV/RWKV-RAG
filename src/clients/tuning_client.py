@@ -8,7 +8,7 @@ class TuningClient:
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ) # 设置请求套接字
         self.socket.connect(frontend_url)
-        self.socket.setsockopt(zmq.RCVTIMEO, 60000)
+        self.socket.setsockopt(zmq.RCVTIMEO, 60000 * 5)
 
 
     def jsonl2binidx(self,jsonl_file: str=None,

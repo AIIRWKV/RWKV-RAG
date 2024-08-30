@@ -10,7 +10,6 @@ from rwkv.utils import PIPELINE, PIPELINE_ARGS
 
 from src.services import AbstractServiceWorker
 #from rwkv_lm_ext.src.model_run import generate_beamsearch
-from tokenizer.rwkv_tokenizer import TRIE_TOKENIZER
 from configuration import config as project_config
 
 
@@ -28,7 +27,6 @@ class LLMService:
     
     def __init__(self,
                  base_rwkv,
-                 tokenizer,
                  device = 'cuda',
                  dtype = torch.bfloat16,
                  **kwargs
@@ -36,7 +34,6 @@ class LLMService:
         """
         Args:
             base_rwkv： str， the path of rwkv model
-            tokenizer:tokenizer.rwkv_tokenizer.TRIE_TOKENIZER
         """
 
         self.base_rwkv = base_rwkv
@@ -50,7 +47,6 @@ class LLMService:
         self.model = OriginRWKV(base_rwkv, strategy=strategy)
         info = vars(self.model.args)
         print(f'load model from {base_rwkv},result is {info}')
-        self.tokenizer = tokenizer
 
         self.bgem3 = None
         self.reranker = None
@@ -95,7 +91,6 @@ class LLMService:
         self._current_states_value = []
         gc.collect()
         strategy = self.kwargs.get('strategy', 'cuda fp16')
-        print(base_model_path, 'dfddddddfswfffasfafa')
         self.model = OriginRWKV(base_model_path, strategy=strategy)
         self._current_base_model_path = base_model_path
 
@@ -184,12 +179,7 @@ class LLMService:
 class ServiceWorker(AbstractServiceWorker):
     def init_with_config(self, config):
         base_model_file = config.get("base_model_path") # 默认使用配置文件的模型
-        try:
-            tokenizer = TRIE_TOKENIZER()
-            print('imported tokenizer')
-        except Exception as e:
-            raise ValueError('failed to print tokenizer',e)
-        self.llm_service = LLMService(base_model_file, tokenizer)
+        self.llm_service = LLMService(base_model_file)
     
     def process(self, cmd):
         if cmd['cmd'] == 'GET_EMBEDDINGS':

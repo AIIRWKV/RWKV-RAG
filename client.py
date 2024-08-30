@@ -280,17 +280,21 @@ def rag_chain(index_client: IndexClient, llm_client: LLMClient):
     recall_button = st.button("召回")
 
     if recall_button and query_input:
-        search_results = index_client.search_nearby(query_input, collection_name=st.session_state.kb_name)['value']
+        search_results = index_client.search_nearby(query_input, collection_name=st.session_state.kb_name).get('value')
         documents = search_results["documents"][0]
         st.write(documents)
         cross_scores = llm_client.cross_encode([query_input for i in range(len(documents))], documents)
         st.header("Cross_score")
         st.write(cross_scores)
-        max_score_index = cross_scores["value"].index(max(cross_scores["value"]))
-        best_match = documents[max_score_index]
-        st.header("最佳匹配")
-        st.write(f"Best Match: {best_match}")
-        st.session_state.best_match = best_match
+        cross_scores_values = cross_scores['value']
+        if cross_scores_values:
+            max_score_index = cross_scores["value"].index(max(cross_scores["value"]))
+            best_match = documents[max_score_index]
+            st.header("最佳匹配")
+            st.write(f"Best Match: {best_match}")
+            st.session_state.best_match = best_match
+        else:
+            st.warning("没有找到匹配的只是")
 
     st.subheader('RWKV-RAG-CHAT')
 

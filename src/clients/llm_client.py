@@ -6,7 +6,7 @@ class LLMClient:
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
         self.socket.connect(url)
-        self.socket.setsockopt(zmq.RCVTIMEO, 60000)
+        self.socket.setsockopt(zmq.RCVTIMEO, 60000 * 5)
 
     def encode(self,texts):
         cmd = {"cmd": "GET_EMBEDDINGS", "texts": texts}
