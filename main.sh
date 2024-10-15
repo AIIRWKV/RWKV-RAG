@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$SERVICE_TYPE" = "service" ]; then
-    python service.py
+    python3 service.py
 elif [ "$SERVICE_TYPE" = "client" ]; then
     streamlit run client.py
 else
