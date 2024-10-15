@@ -40,7 +40,7 @@ def start_service(service_cls :AbstractServiceWorker, config: dict):
     print(f"\033[91mService {name} started\033[0m")
 
 
-if __name__ == "__main__":
+def main():
     services = config.config.keys()
     print(f"Starting services {services}")
     current_module = sys.modules[__name__]
@@ -50,8 +50,8 @@ if __name__ == "__main__":
             print(f"Starting service {service}")
             service_module_name = config_service["service_module"]
             # 类字符串名称
-            class_name = public_service_workers.get(service_module_name,None)
-            service_cls = getattr(current_module, class_name, None) # 判断服务“类” 有没有导入成功
+            class_name = public_service_workers.get(service_module_name, None)
+            service_cls = getattr(current_module, class_name, None)  # 判断服务“类” 有没有导入成功
             if service_cls:
                 is_init_once = hasattr(service_cls, "init_once")
                 if is_init_once:
@@ -59,3 +59,7 @@ if __name__ == "__main__":
                     service_cls.init_once(config_service)
 
                 start_service(service_cls, config_service)
+
+
+if __name__ == "__main__":
+    main()

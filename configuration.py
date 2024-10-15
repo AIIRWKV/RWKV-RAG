@@ -55,8 +55,9 @@ class Configuration:
         if not os.path.exists(rerank_path):
             raise FileNotFoundError(f"reranker_path {rerank_path} not found for {key}")
         state_path = settings.get("state_path", '') or ''
-        if not os.path.exists(state_path):
-            raise FileNotFoundError(f"state_path {state_path} not found for {key}")
+        if state_path:
+            if not os.path.exists(state_path):
+                raise FileNotFoundError(f"state_path {state_path} not found for {key}")
         self.default_base_model_path = base_model_file.strip()
         self.default_bgem3_path = bgem3_path
         self.default_rerank_path = rerank_path

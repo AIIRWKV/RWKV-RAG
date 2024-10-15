@@ -154,7 +154,10 @@ class LLMService:
             self.reload_base_model(base_model_path)
         if not state_file:
             state_file = project_config.default_state_path
-        states_value = self.load_state_tuning(state_file)
+        if state_file:
+            states_value = self.load_state_tuning(state_file)
+        else:
+            states_value = None
         gen_args = PIPELINE_ARGS(temperature = temperature, top_p = top_p, top_k=top_k, # top_k = 0 then ignore
                         alpha_frequency = alpha_frequency,
                         alpha_presence = alpha_presence,
