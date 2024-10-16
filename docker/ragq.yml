@@ -11,7 +11,7 @@ llm:
     port: 7782
   num_workers: 1
   spawn_method: spawn
-  base_model_path: /root/model/RWKV-x060-World-1B6-v2.1-20240328-ctx4096.pth
+  base_model_path: /root/model/RWKV-x060-World-7B-v2.1-20240507-ctx4096.pth
   embedding_path: /root/model/bge-m31
   reranker_path: /root/model/BAAIbge-reranker-v2-m3
   state_path: /root/model/state/qa/rwkv-2.pth

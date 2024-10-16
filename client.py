@@ -596,8 +596,11 @@ def main():
                           project_config.config.get('index', {}).get('enabled'),
                           project_config.config.get('tuning', {}).get('enabled'),
                           project_config.config.get('llm', {}).get('enabled')]
-
-    index_client = IndexClient("tcp://localhost:7783")
+    index_client_front_end = project_config.config.get('index', {}).get('front_end', {})
+    index_client_tcp = '%s://%s:%s' % (index_client_front_end.get('protocol', 'tcp'),
+                                       index_client_front_end.get('host', 'localhost'),
+                                       index_client_front_end.get('port', '7783'))
+    index_client = IndexClient(index_client_tcp)
     file_status_manager = FileStatusManager(project_config.config.get('index', {}).get('sqlite_db_path'))
 
 
@@ -626,7 +629,11 @@ def main():
         st.session_state.base_model_path = st.selectbox('基底RWKV模型', [default_base_model_name])
         st.session_state.state_file_path = st.selectbox("记忆状态", [project_config.default_state_path])
     if tabs_title_enabled[4]:
-        llm_client = LLMClient("tcp://localhost:7781")
+        llm_client_front_end = project_config.config.get('llm', {}).get('front_end', {})
+        llm_client_tcp = '%s://%s:%s' % (llm_client_front_end.get('protocol', 'tcp'),
+                                         llm_client_front_end.get('host', 'localhost'),
+                                         llm_client_front_end.get('port', '7781'))
+        llm_client = LLMClient(llm_client_tcp)
     else:
         llm_client = None
     if app_scenario == tabs_title[0]:
@@ -646,7 +653,11 @@ def main():
         # 在这里添加微调选项卡的内容
         if tabs_title_enabled[3]:
             st.title("模型微调")
-            tuning_client = TuningClient('tcp://localhost:7787')
+            tuning_client_front_end = project_config.config.get('tuning', {}).get('front_end', {})
+            tuning_client_tcp = '%s://%s:%s' % (tuning_client_front_end.get('protocol', 'tcp'),
+                                                   tuning_client_front_end.get('host', 'localhost'),
+                                                   tuning_client_front_end.get('port', '7787'))
+            tuning_client = TuningClient(tuning_client_tcp)
             jsonl2binidx_manager(tuning_client)
             wandb_manager(tuning_client)
             tuning_manager(tuning_client, app_scenario, )
