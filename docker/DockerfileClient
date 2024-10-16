@@ -1,0 +1,35 @@
+FROM python:3.10
+LABEL maintainer=RWKV-RAG-Client
+
+WORKDIR /root
+
+# 初始化环境
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone \
+
+RUN apt-get update -y && \
+    apt-get install -y git && \
+    apt-get install -y --no-install-recommends libglib2.0-0 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+RUN pip install --upgrade pip setuptools
+RUN pip install --index-url https://pypi.python.org/simple/ pipx && \
+    pipx install poetry --force
+
+# 下载代码
+RUN git clone https://github.com/AIIRWKV/RWKV-RAG.git
+
+# 安装 Python 依赖
+WORKDIR /root/RWKV-RAG
+RUN pip install packaging==24.1 torch==2.2.2
+RUN pip install -r requirements.txt
+
+# 安装 tesseract-ocr
+RUN apt-get update && apt-get install -y tesseract-ocr \
+    tesseract-ocr-chi-sim
+
+# 设置环境变量，启用 GPU0， 可根据实际情况修改
+# ENV CUDA_VISIBLE_DEVICES 0
+
+# 启动应用程序
+#ENTRYPOINT ["streamlit", "run", "client.py"]

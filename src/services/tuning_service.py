@@ -4,7 +4,7 @@ import os
 import wandb
 
 from src.services import AbstractServiceWorker
-from src.utils import Jsonl2Binidx, shell_command
+from src.tools import Jsonl2Binidx, shell_command
 
 class WandbManager:
     """

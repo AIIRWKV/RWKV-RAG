@@ -1,0 +1,72 @@
+# 基础镜像，使用支持 CUDA 的镜像
+FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
+LABEL maintainer=RWKV-RAG-Service
+
+# 设置工作目录
+WORKDIR /root
+RUN mkdir -p /root/model
+RUN mkdir -p /root/data
+RUN mkdir -p /root/data/chroma
+
+# 初始化环境
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
+
+# 安装 Python 3.10，并添加 deadsnakes PPA
+RUN apt-get update && apt-get install -y \
+    software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && apt-get install -y \
+    python3.10 \
+    python3.10-dev \
+    python3.10-venv \
+    python3-pip \
+    curl \
+    gnupg \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# 添加 CUDA 存储库的 GPG 密钥并设置 keyring
+RUN curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-archive-keyring.gpg | tee /usr/share/keyrings/cuda-archive-keyring.gpg > /dev/null
+
+# 添加 CUDA 存储库，并使用 keyring 签署
+RUN echo "deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/ /" > /etc/apt/sources.list.d/cuda.list
+
+# 删除重复的存储库配置
+RUN rm -f /etc/apt/sources.list.d/cuda-ubuntu2204-x86_64.list
+
+# 更新并安装 CUDA 工具包，包括 nvcc
+RUN apt-get update && apt-get install -y \
+    libcublas-12-1 \
+    cuda-toolkit-12-1 \
+    --allow-change-held-packages \
+    && rm -rf /var/lib/apt/lists/*
+
+# 设置 CUDA_HOME 环境变量
+ENV CUDA_HOME /usr/local/cuda
+
+RUN apt-get update -y && \
+    apt-get install -y git && \
+    apt-get install -y --no-install-recommends libglib2.0-0 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+RUN pip install --upgrade pip setuptools
+RUN pip install --index-url https://pypi.python.org/simple/ pipx && \
+    pipx install poetry --force
+RUN git clone https://github.com/AIIRWKV/RWKV-RAG.git
+
+# 安装 Python 依赖
+WORKDIR /root/RWKV-RAG
+RUN pip install packaging==24.1 torch==2.2.2
+RUN pip install -r requirements.txt
+
+# 安装 tesseract-ocr
+RUN apt-get update && apt-get install -y tesseract-ocr \
+    tesseract-ocr-chi-sim
+
+# 设置环境变量，启用 GPU0， 可根据实际情况修改
+# ENV CUDA_VISIBLE_DEVICES 0
+
+# 启动应用程序
+ENTRYPOINT ["python3.10", "service.py"]
+

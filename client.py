@@ -1,6 +1,8 @@
 import os
 import asyncio
 import re
+import string
+import random
 from collections import OrderedDict
 
 import streamlit as st
@@ -10,9 +12,8 @@ from src.clients.index_client import IndexClient
 from src.clients.llm_client import LLMClient
 from src.utils.loader import Loader
 from src.utils.internet import search_on_baike
-from src.utils.make_data import get_random_string
 from src.clients.tuning_client import TuningClient
-from src.services import FileStatusManager
+from src.clients import FileStatusManager
 from configuration import config as project_config
 
 current_path = os.path.dirname(os.path.abspath(__file__)) # 工程当前目录
@@ -42,6 +43,10 @@ async def search_and_notify(search_query, output_dir, output_filename):
 
     # Run the async function in the event loop
     return asyncio.run(async_search())
+
+def get_random_string(length):
+    haracters = string.ascii_uppercase + string.digits
+    return ''.join(random.choices(haracters, k=length))
 
 
 # 设置页面的全局CSS样式
