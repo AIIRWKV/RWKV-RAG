@@ -41,7 +41,7 @@ pip install -r requirements.txt
 > - 推荐使用 Python 3.10 或 Python 3.9
 > - 推荐使用 torch 2.2.2+cu121
 > - PyTorch Lightning **必须**使用 1.9.5 版本
-> - 安装完依赖项后，执行命令``` playwright install``` 安装浏览器驱动
+> - 安装完依赖项后，执行命令``` playwright install```  ```playwright install-deps``` 安装浏览器驱动
 
 4. **确认 VRAM 是否充足**
 

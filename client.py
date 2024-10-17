@@ -137,7 +137,7 @@ def internet_search(index_client: IndexClient, file_client: FileStatusManager):
     """
     知识入库
     """
-    if 'internet_search_random_str' not in st.session_state or  not st.session_state.internet_search_random_str:
+    if 'internet_search_random_str' not in st.session_state or not st.session_state.internet_search_random_str:
         random_str = get_random_string(6)
         st.session_state.internet_search_random_str = random_str
 
@@ -166,7 +166,7 @@ def internet_search(index_client: IndexClient, file_client: FileStatusManager):
                 if not output_filename:
                     output_filename = f'{search_query}.txt'
                 filepath, msg = asyncio.run(search_and_notify(search_query, output_dir, output_filename))
-                st.session_state.internet_search_random_str = output_filename
+                #st.session_state.internet_search_random_str = output_filename
                 if not msg:
                     st.success(f"搜索结果已保存到: {filepath}")
                 else:

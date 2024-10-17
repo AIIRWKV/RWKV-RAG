@@ -43,7 +43,7 @@ sudo docker build -f DockerfileService -t rwkv_rag_service:latest .
 #### 启动容器
 
 ```shell
-sudo docker run -it --gpus all --name rwkv_rag_service -p 7781:7781 -p 7782:7782 -p 7783:7783 -p 7784:7784 -p 7788:7788 -p 7787:7787  -v /home/rwkv/models:/root/model -v /home/rwkv/Data:/root/data -v /home/rwkv/docker/ragq_service.yml:/root/RWKV-RAG/ragq_service.yml  rwkv_rag_service:latest
+sudo docker run -it --gpus all --name rwkv_rag_service -p 7781:7781 -p 7782:7782 -p 7783:7783 -p 7784:7784 -p 7788:7788 -p 7787:7787  -v /home/rwkv/models:/root/model -v /home/rwkv/Data:/root/data -v /home/rwkv/docker/ragq_service.yml:/root/RWKV-RAG/ragq.yml  rwkv_rag_service:latest
 ```
 
 运行容器参数含义：
@@ -83,7 +83,7 @@ sudo docker run -it  --name rwkv_rag_client -p 8501:8501  -v /home/rwkv/Data/kno
 ###### -v /home/rwkv/models:/root/model
 将宿主机的/home/rwkv/models目录挂载到容器的/root/model目录下,该服务涉及到模型管理慕课，也会检测模型文件，所有需要将宿主机模型存储路径挂载到容器中
 ###### -v /home/rwkv/Data:/root/data
-将宿主机的/home/rwkv/Data目录挂载到容器的/root/data目录下，可能需要读取RWKV-RAG Client Docker服务产生的数据
+将宿主机的/home/rwkv/Data目录挂载到容器的/root/data目录下，可能需要读取RWKV-RAG Service Docker服务产生的数据
 ###### -v /home/rwkv/Data/knowledge_data:/root/knowledge_data
 将宿主机的/home/rwkv/Data/knowledge_data目录挂载到容器的/root/knowledge_data目录下，该服务涉及到知识库管理，需要将知识库文件挂载到容器中
 ###### -p 8501:8501

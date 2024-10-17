@@ -26,6 +26,7 @@ RUN pip install -r requirements_streamlit.txt
 
 # 安装浏览器驱动
 RUN playwright install
+RUN playwright install-deps
 
 # 安装 tesseract-ocr
 RUN apt-get update && apt-get install -y tesseract-ocr \
@@ -35,4 +36,4 @@ RUN apt-get update && apt-get install -y tesseract-ocr \
 # ENV CUDA_VISIBLE_DEVICES 0
 
 # 启动应用程序
-#ENTRYPOINT ["streamlit", "run", "client.py"]
+ENTRYPOINT ["streamlit", "run", "client.py"]
