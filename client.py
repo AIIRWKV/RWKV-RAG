@@ -16,8 +16,7 @@ from src.clients.tuning_client import TuningClient
 from src.clients import FileStatusManager
 from configuration import config as project_config
 
-current_path = os.path.dirname(os.path.abspath(__file__)) # 工程当前目录
-parent_dir = os.path.dirname(current_path)  # 上一级
+parent_dir = project_config.config.get('index', {}).get('knowledge_base_path')
 default_knowledge_base_dir = os.path.join(parent_dir, "knowledge_data") # 默认联网知识的存储位置
 if not os.path.exists(default_knowledge_base_dir):
     os.makedirs(default_knowledge_base_dir)

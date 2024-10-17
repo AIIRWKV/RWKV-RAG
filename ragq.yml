@@ -33,6 +33,7 @@ index:
   sqlite_db_path: /home/rwkv/LongHua/data/files_services.db
   num_workers: 4
   llm_front_end_url: tcp://localhost:7781
+  knowledge_base_path: /home/rwkv/LongHua/data
 tuning:
   enabled: true
   service_module: tuning_service

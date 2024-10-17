@@ -33,6 +33,7 @@ index:
   sqlite_db_path: /root/data/files_services.db
   num_workers: 4
   llm_front_end_url: tcp://192.168.31.52:7781
+  knowledge_base_path: /root/data
 tuning:
   enabled: true
   service_module: tuning_service

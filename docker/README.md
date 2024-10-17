@@ -55,7 +55,7 @@ sudo docker run -it --gpus all --name rwkv_rag_service -p 7781:7781 -p 7782:7782
 ###### -v /home/rwkv/models:/root/model
 将宿主机的/home/rwkv/models目录挂载到容器的/root/model目录下
 ###### -v /home/rwkv/Data:/root/data
-将宿主机的/home/rwkv/Data目录挂载到容器的/root/data目录下，容器中产生的文件会保存到该目录下
+将宿主机的/home/rwkv/Data目录挂载到容器的/root/data目录下，容器中产生的文件会保存到该目录下,包括RWKV-RAG Client Docker服务也是存储到宿主机的/home/rwkv/Data目录下
 ###### -p 7781:7781等
 ragq_service.yml配置的端口都需要对外暴露，否则无法访问
 
@@ -73,7 +73,7 @@ sudo docker build -f DockerfileClient -t rwkv_rag_client:latest .
 
 #### 启动容器
 ```shell
-sudo docker run -it  --name rwkv_rag_client -p 8501:8501  -v /home/rwkv/Data/knowledge_data:/root/knowledge_data -v /home/rwkv/models:/root/model -v /home/rwkv/Data:/root/data  -v /home/rwkv/Data/ragq_client.yml:/root/RWKV-RAG/ragq.yml   rwkv_rag_client:latest
+sudo docker run -it  --name rwkv_rag_client -p 8501:8501  -v /home/rwkv/Data:/root/data -v /home/rwkv/models:/root/model -v /home/rwkv/Data/ragq_client.yml:/root/RWKV-RAG/ragq.yml   rwkv_rag_client:latest
 ```
 
 运行容器参数含义：

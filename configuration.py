@@ -86,6 +86,10 @@ class Configuration:
         sqlite_db_path_dir = os.path.dirname(sqlite_db_path)
         if not os.path.exists(sqlite_db_path_dir):
             raise NotADirectoryError(f"sqlite_db_path {sqlite_db_path_dir} not found for {key}")
+        knowledge_base_path = settings.get("knowledge_base_path", '')
+        if knowledge_base_path:
+            if not os.path.exists(knowledge_base_path):
+                raise NotADirectoryError(f"knowledge_base_path {knowledge_base_path} not found for {key}")
 
     def set_llm_service_config(self, base_model_path=None, embedding_path=None, reranker_path=None, state_path=None):
         is_save = False

@@ -31,6 +31,7 @@ index:
   chroma_port: 9999
   chroma_host: 192.168.31.52
   sqlite_db_path: /root/data/files_services.db
+  knowledge_base_path: /root/data
   num_workers: 4
   llm_front_end_url: tcp://0.0.0.0:7781
 tuning:
