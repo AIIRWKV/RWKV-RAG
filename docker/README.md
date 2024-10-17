@@ -4,7 +4,7 @@
 
 > [!WARNING]  
 > 
-> 目前只支持在单个宿主机上部署，不支持集群部署，后续会支持集群部署，每一个服务都可以单独部署。
+> 目前只支持在单个宿主机上部署，不支持集群部署。后续会支持集群部署，LLM Service（**大模型生成服务**） 、Index Service（**数据索引及检索服务**）和 Tuning Service（**一键微调服务**）每一个服务都可以docker单独部署。
 
 ## 1. NVIDIA Container Toolkit
 如果你还没有安装 NVIDIA Container Toolkit，你可以按照以下步骤进行安装：
