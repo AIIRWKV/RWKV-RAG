@@ -48,9 +48,3 @@ class IndexClient:
         msg = self.socket.recv()
         resp = msgpack.unpackb(msg, raw=False)
         return resp
-
-if __name__ == "__main__":
-    print('222222')
-    index_client = IndexClient('tcp://192.168.31.52:7783')
-    collections = index_client.show_collection()
-    print(collections)
