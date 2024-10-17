@@ -21,7 +21,7 @@ sudo systemctl restart docker
 ```
 
 
-## 2. chromadb docker 部署
+## 2. Chromadb Docker 部署
 ```shell
 sudo docker pull chromadb/chroma
 sudo docker run -d --rm --name chromadb_service -p 9999:8000 -v /home/rwkv/Data/chroma:/chroma/chroma -e IS_PERSISTENT=TRUE -e ANONYMIZED_TELEMETRY=TRUE chromadb/chroma:latest
