@@ -7,6 +7,10 @@ WORKDIR /root
 RUN mkdir -p /root/model
 RUN mkdir -p /root/data
 RUN mkdir -p /root/data/chroma
+RUN mkdir -p /root/data/knowledge_data  # 存放知识库文件
+RUN mkdir -p /root/data/knowledge_data/upload_knowledge # 存放用户上传的知识库文件
+RUN mkdir -p /root/data/knowledge_data/tuning_model  # 存放微调模型
+RUN mkdir -p /root/data/knowledge_data/tuning_data # 存放微调数据
 
 # 初始化环境
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
