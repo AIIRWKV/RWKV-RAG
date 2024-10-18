@@ -1,10 +1,10 @@
-# RWKV-RAG Docker部署
+# RWKV-RAG Docker 部署
 
 本教程不包含docker和NVIDIA驱动程序安装教程，如果没有安装请提前安装，具体安装方法请参照官方文档
 
 > [!WARNING]  
 > 
-> 目前只支持在单个宿主机上部署，不支持集群部署。后续会支持集群部署，LLM Service（**大模型生成服务**） 、Index Service（**数据索引及检索服务**）和 Tuning Service（**一键微调服务**）每一个服务都可以docker单独部署。
+> 目前只支持在单个宿主机上部署，不支持集群部署。后续会支持集群部署。
 
 ## 1. NVIDIA Container Toolkit
 如果你还没有安装 NVIDIA Container Toolkit，你可以按照以下步骤进行安装：
@@ -33,12 +33,12 @@ sudo docker run -d --rm --name chromadb_service -p 9999:8000 -v /home/rwkv/Data/
 
 ## 3. RWKV-RAG Service Docker 部署
 #### 构建镜像
-下载项目代码docker目录，cd到该目录下，构建镜像
+下载项目代码`docker`目录，`cd`到该目录下，构建镜像
 ```shell
 sudo docker build -f DockerfileService -t rwkv_rag_service:latest .
 ```
 #### 下载模型文件
-参照项目文档**模型下载**部分，将下载好的模型统一放在宿主机的/home/rwkv/models目录下，我们通过挂载的模式将模型文件挂载到容器中
+参照项目文档的[模型下载](https://github.com/AIIRWKV/RWKV-RAG?tab=readme-ov-file#%E6%A8%A1%E5%9E%8B%E4%B8%8B%E8%BD%BD)部分，将下载好的 RWKV 模型统一放在宿主机的 `/home/rwkv/models` 目录下，我们将通过挂载模式，将模型文件挂载到容器中。
 
 #### 启动容器
 
@@ -46,22 +46,33 @@ sudo docker build -f DockerfileService -t rwkv_rag_service:latest .
 sudo docker run -it --gpus all --name rwkv_rag_service -p 7781:7781 -p 7782:7782 -p 7783:7783 -p 7784:7784 -p 7788:7788 -p 7787:7787  -v /home/rwkv/models:/root/model -v /home/rwkv/Data:/root/data -v /home/rwkv/docker/ragq_service.yml:/root/RWKV-RAG/ragq.yml  rwkv_rag_service:latest
 ```
 
-运行容器参数含义：
-###### --gpus all
-允许容器访问所有可用的GPU
-###### -v /home/rwkv/docker/ragq_service.yml:/root/RWKV-RAG/ragq.yml
-将宿主机的/home/rwkv/docker/ragq_service.yml文件挂载到容器的/root/RWKV-RAG/ragq.yml文件下，用于覆盖容器里项目的配置文件ragq.yml，便于管理配置文件。 <br>
-配置文件模板参照项目docker/ragq_service.yml。需要说明的是host**必须**是**0.0.0.0**,不能是127.0.0.1、localhost或者宿主机的IP地址，否则RWKV-RAG Client Docker服务有可能访问不了RWKV-RAG Service Docker服务
-###### -v /home/rwkv/models:/root/model
-将宿主机的/home/rwkv/models目录挂载到容器的/root/model目录下
-###### -v /home/rwkv/Data:/root/data
-将宿主机的/home/rwkv/Data目录挂载到容器的/root/data目录下，容器中产生的文件会保存到该目录下,包括RWKV-RAG Client Docker服务也是存储到宿主机的/home/rwkv/Data目录下
-###### -p 7781:7781等
-ragq_service.yml配置的端口都需要对外暴露，否则无法访问
+### 运行容器的参数含义
+
+#### --gpus all
+
+允许容器访问所有可用的 `GPU`。
+
+#### -v /home/rwkv/docker/ragq_service.yml:/root/RWKV-RAG/ragq.yml
+
+将宿主机的 `/home/rwkv/docker/ragq_service.yml` 文件挂载到容器的 `/root/RWKV-RAG/ragq.yml` 文件下，用于覆盖容器里项目的配置文件 `ragq.yml`，便于管理配置文件。
+
+配置文件模板参照项目 `docker/ragq_service.yml`。需要说明的是 `host` **必须** 是 `0.0.0.0`，不能是 `127.0.0.1`、`localhost` 或者宿主机的 `IP` 地址，否则 `RWKV-RAG Client Docker` 服务有可能访问不了 `RWKV-RAG Service Docker` 服务。
+
+#### -v /home/rwkv/models:/root/model
+
+将宿主机的 `/home/rwkv/models` 目录挂载到容器的 `/root/model` 目录下。
+
+#### -v /home/rwkv/Data:/root/data
+
+将宿主机的 `/home/rwkv/Data` 目录挂载到容器的 `/root/data` 目录下，容器中产生的文件会保存到该目录下，包括 `RWKV-RAG Client Docker` 服务也是存储到宿主机的 `/home/rwkv/Data` 目录下。
+
+#### -p 7781:7781 等端口
+
+`ragq_service.yml` 配置的端口都需要对外暴露，否则无法访问。
 
 > [!WARNING]  
 > 
-> - 镜像构建完后占用空间21GB左右，请预留足够的存储空间
+> 镜像构建完体积占用约 21GB ，请预留足够的存储空间。
 > 
 
 
@@ -75,14 +86,22 @@ sudo docker build -f DockerfileClient -t rwkv_rag_client:latest .
 ```shell
 sudo docker run -it  --name rwkv_rag_client -p 8501:8501  -v /home/rwkv/Data:/root/data -v /home/rwkv/models:/root/model -v /home/rwkv/Data/ragq_client.yml:/root/RWKV-RAG/ragq.yml   rwkv_rag_client:latest
 ```
+### 运行容器的参数含义
 
-运行容器参数含义：
-###### -v /home/rwkv/docker/ragq_client.yml:/root/RWKV-RAG/ragq.yml
-将宿主机的/home/rwkv/docker/ragq_client.yml文件挂载到容器的/root/RWKV-RAG/ragq.yml文件下，用于覆盖容器里项目的配置文件ragq.yml，便于管理配置文件。 <br>
-配置文件模板参照项目docker/ragq_cliente.yml。需要说明的是host必须是宿主机的IP地址，否则RWKV-RAG Client Docker服务有可能访问不了RWKV-RAG Service Docker服务
-###### -v /home/rwkv/models:/root/model
-将宿主机的/home/rwkv/models目录挂载到容器的/root/model目录下,该服务涉及到模型管理慕课，也会检测模型文件，所有需要将宿主机模型存储路径挂载到容器中
-###### -v /home/rwkv/Data:/root/data
-将宿主机的/home/rwkv/Data目录挂载到容器的/root/data目录下，可能需要读取RWKV-RAG Service Docker服务产生的数据
-###### -p 8501:8501
-提供对外访问端口
+#### -v /home/rwkv/docker/ragq_client.yml:/root/RWKV-RAG/ragq.yml
+
+将宿主机的 `/home/rwkv/docker/ragq_client.yml` 文件挂载到容器的 `/root/RWKV-RAG/ragq.yml` 文件下，用于覆盖容器里项目的配置文件 `ragq.yml`，便于管理配置文件。 
+
+配置文件模板参照项目 `docker/ragq_cliente.yml`。需要说明的是 `host` 必须是宿主机的 `IP` 地址，否则 `RWKV-RAG Client Docker` 服务有可能访问不了 `RWKV-RAG Service Docker` 服务。
+
+#### -v /home/rwkv/models:/root/model
+
+将宿主机的 `/home/rwkv/models` 目录挂载到容器的 `/root/model` 目录下，该服务涉及到模型管理模块，也会检测模型文件，所以需要将宿主机的模型存储路径挂载到容器中。
+
+#### -v /home/rwkv/Data:/root/data
+
+将宿主机的 `/home/rwkv/Data` 目录挂载到容器的 `/root/data` 目录下，可能需要读取 `RWKV-RAG Service Docker` 服务产生的数据。
+
+#### -p 8501:8501
+
+提供对外访问端口。

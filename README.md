@@ -8,7 +8,7 @@ RWKV-RAG 使用的模型针对中文数据集进行调优，因此在中文任�
 > 
 > RWKV-RAG 当前只支持 Linux 部署，暂无 Windows 或 MacOS 版本。
 > 
-> 支持docker镜像部署。参照 [docker部署](docker/README.md) 
+> 支持docker 镜像部署。参照 [docker部署](docker/README.md) 
 
 ## 特性
 
@@ -41,24 +41,25 @@ pip install -r requirements.txt
 > - 推荐使用 Python 3.10 或 Python 3.9
 > - 推荐使用 torch 2.2.2+cu121
 > - PyTorch Lightning **必须**使用 1.9.5 版本
-> - 安装完依赖项后，执行命令``` playwright install```  ```playwright install-deps``` 安装浏览器驱动，另外更新组件
-> ```shell
-> apt-get update && apt-get install libnss3  \
->    libnspr4  \
->    libdbus-1-3 \
->    libatk1.0-0  \
->    libatk-bridge2.0-0  \
->    libcups2  \
->    libdrm2  \
->    libatspi2.0-0  \
->    libxcomposite1  \
->    libxdamage1 \
->    libxfixes3  \
->    libxrandr2 \
->    libgbm1  \
->    libxkbcommon0 \
->    libasound2
->```
+
+安装完依赖项后，执行命令``` playwright install```  ```playwright install-deps``` 安装浏览器驱动，另外更新组件：
+```shell
+apt-get update && apt-get install libnss3  \
+   libnspr4  \
+   libdbus-1-3 \
+   libatk1.0-0  \
+   libatk-bridge2.0-0  \
+   libcups2  \
+   libdrm2  \
+   libatspi2.0-0  \
+   libxcomposite1  \
+   libxdamage1 \
+   libxfixes3  \
+   libxrandr2 \
+   libgbm1  \
+   libxkbcommon0 \
+   libasound2
+```
 
 4. **确认 VRAM 是否充足**
 
