@@ -142,10 +142,10 @@ class LLMService:
 
     def sampling_generate(self,instruction,input_text,state_file,
                           temperature=1.0,
-                          top_p=0,
+                          top_p=0.2,
                           top_k=0,
-                          alpha_frequency=0.25,
-                          alpha_presence=0.25,
+                          alpha_frequency=0.5,
+                          alpha_presence=0.5,
                           alpha_decay=0.996,
                           template_prompt=None,
                           base_model_path=None,
@@ -172,7 +172,7 @@ class LLMService:
         print('prompt=',ctx)
         try:
             pipeline = PIPELINE(self.model, "rwkv_vocab_v20230424")
-            output = pipeline.generate(ctx, token_count=450, args=gen_args, state=states_value)
+            output = pipeline.generate(ctx, token_count=1500, args=gen_args, state=states_value)
             print(output)
         except:
             raise ValueError(traceback.format_exc())
