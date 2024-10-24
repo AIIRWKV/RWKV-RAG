@@ -60,6 +60,7 @@ class WandbManager:
 
 class ServiceWorker(AbstractServiceWorker):
     def init_with_config(self, config):
+        print(config, 'tttt')
         self.jsonl_path = config.get('jsonl_path')
         self.output_path = config.get('output_path')
         self.n_epoch = config.get('n_epoch', 3)

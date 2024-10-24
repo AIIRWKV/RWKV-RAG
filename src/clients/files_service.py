@@ -4,7 +4,7 @@ import traceback
 
 import sqlite3
 
-from configuration import config as project_config
+
 
 
 status_table_name = 'file_status' # 记录文件信息

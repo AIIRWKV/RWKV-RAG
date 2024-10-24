@@ -49,8 +49,9 @@ class ServiceWorker(AbstractServiceWorker):
 
     @staticmethod
     def init_once(config):
-        # 检测记录文件状态的sqlite的数据表是否创建
-
+        if config.get('docker'):
+            # 如果是docker部署的话，不需要检查
+            return
         # 检测chroma db是否已启动
         command1 = "ps -ef | grep '{}'".format("chroma")
         output = subprocess.check_output(command1, shell=True, text=True)

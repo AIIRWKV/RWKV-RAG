@@ -1,6 +1,5 @@
 import gc
 import os
-import math
 import traceback
 
 import torch
@@ -10,8 +9,7 @@ from rwkv.utils import PIPELINE, PIPELINE_ARGS
 
 from src.services import AbstractServiceWorker
 #from rwkv_lm_ext.src.model_run import generate_beamsearch
-from configuration import config as project_config
-
+from configuration import LLMServiceConfig
 
 os.environ['RWKV_JIT_ON'] = '1'
 os.environ['RWKV_T_MAX'] = '4096'
@@ -26,7 +24,8 @@ os.environ['RWKV_CTXLEN'] = '4096'
 class LLMService:
     
     def __init__(self,
-                 base_rwkv,
+                 base_rwkv: str,
+                 config: dict,
                  device = 'cuda',
                  dtype = torch.bfloat16,
                  **kwargs
@@ -41,6 +40,7 @@ class LLMService:
         self.device = device
         self.dtype = dtype
         self.kwargs = kwargs
+        self.config = config
 
 
         strategy = kwargs.get('strategy', 'cuda fp16')
@@ -117,7 +117,7 @@ class LLMService:
         if isinstance(inputs,str):
             inputs = [inputs]
         if not bgem3_path:
-            bgem3_path = project_config.default_bgem3_path
+            bgem3_path = self.config.get('bgem3_path')
         self.load_bgem3(bgem3_path)
         outputs = self.bgem3.encode(inputs, 
                                     batch_size=12, 
@@ -127,7 +127,7 @@ class LLMService:
         return outputs
     def cross_encode_text(self,text_a, text_b, rerank_path=None):
         if not rerank_path:
-            rerank_path = project_config.default_rerank_path
+            rerank_path = self.config.get('rerank_path')
         self.load_rerank(rerank_path)
         score = self.reranker.compute_score([text_a, text_b])
         return score
@@ -153,7 +153,7 @@ class LLMService:
         if base_model_path:
             self.reload_base_model(base_model_path)
         if not state_file:
-            state_file = project_config.default_state_path
+            state_file = self.config.get('state_path')
         if state_file:
             states_value = self.load_state_tuning(state_file)
         else:
@@ -182,7 +182,7 @@ class LLMService:
 class ServiceWorker(AbstractServiceWorker):
     def init_with_config(self, config):
         base_model_file = config.get("base_model_path") # 默认使用配置文件的模型
-        self.llm_service = LLMService(base_model_file)
+        self.llm_service = LLMService(base_model_file, config)
     
     def process(self, cmd):
         if cmd['cmd'] == 'GET_EMBEDDINGS':

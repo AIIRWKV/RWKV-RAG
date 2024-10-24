@@ -14,24 +14,23 @@ from src.utils.loader import Loader
 from src.utils.internet import search_on_baike
 from src.clients.tuning_client import TuningClient
 from src.clients import FileStatusManager
-from configuration import config as project_config
 
-parent_dir = project_config.config.get('index', {}).get('knowledge_base_path')
-default_knowledge_base_dir = os.path.join(parent_dir, "knowledge_data") # 默认联网知识的存储位置
-if not os.path.exists(default_knowledge_base_dir):
-    os.makedirs(default_knowledge_base_dir)
-
-default_upload_knowledge_base_dir = os.path.join(default_knowledge_base_dir, "upload_knowledge")
-if not os.path.exists(default_upload_knowledge_base_dir):
-    os.makedirs(default_upload_knowledge_base_dir)
-
-default_tuning_path = os.path.join(default_knowledge_base_dir, "tuning_data") # 微调数据存储位置
-if not os.path.exists(default_tuning_path):
-    os.makedirs(default_tuning_path)
-
-default_tuning_model_path = os.path.join(default_knowledge_base_dir, "tuning_model")
-if not os.path.exists(default_tuning_model_path):
-    os.makedirs(default_tuning_model_path)
+# parent_dir = project_config.config.get('index', {}).get('knowledge_base_path')
+# default_knowledge_base_dir = os.path.join(parent_dir, "knowledge_data") # 默认联网知识的存储位置
+# if not os.path.exists(default_knowledge_base_dir):
+#     os.makedirs(default_knowledge_base_dir)
+#
+# default_upload_knowledge_base_dir = os.path.join(default_knowledge_base_dir, "upload_knowledge")
+# if not os.path.exists(default_upload_knowledge_base_dir):
+#     os.makedirs(default_upload_knowledge_base_dir)
+#
+# default_tuning_path = os.path.join(default_knowledge_base_dir, "tuning_data") # 微调数据存储位置
+# if not os.path.exists(default_tuning_path):
+#     os.makedirs(default_tuning_path)
+#
+# default_tuning_model_path = os.path.join(default_knowledge_base_dir, "tuning_model")
+# if not os.path.exists(default_tuning_model_path):
+#     os.makedirs(default_tuning_model_path)
 
 
 
@@ -591,10 +590,6 @@ def main():
     # 初始化客户端
 
     tabs_title = ["模型管理", "知识库管理", "知识入库", "模型微调", "知识问答"]
-    tabs_title_enabled = [True, project_config.config.get('index', {}).get('enabled'),
-                          project_config.config.get('index', {}).get('enabled'),
-                          project_config.config.get('tuning', {}).get('enabled'),
-                          project_config.config.get('llm', {}).get('enabled')]
     index_client_front_end = project_config.config.get('index', {}).get('front_end', {})
     index_client_tcp = '%s://%s:%s' % (index_client_front_end.get('protocol', 'tcp'),
                                        index_client_front_end.get('host', 'localhost'),
@@ -627,47 +622,32 @@ def main():
         st.session_state.kb_name = st.selectbox("正在使用的知识库", collection_name_list, )
         st.session_state.base_model_path = st.selectbox('基底RWKV模型', [default_base_model_name])
         st.session_state.state_file_path = st.selectbox("记忆状态", [project_config.default_state_path])
-    if tabs_title_enabled[4]:
-        llm_client_front_end = project_config.config.get('llm', {}).get('front_end', {})
-        llm_client_tcp = '%s://%s:%s' % (llm_client_front_end.get('protocol', 'tcp'),
-                                         llm_client_front_end.get('host', 'localhost'),
-                                         llm_client_front_end.get('port', '7781'))
-        llm_client = LLMClient(llm_client_tcp)
-    else:
-        llm_client = None
+    llm_client_front_end = project_config.config.get('llm', {}).get('front_end', {})
+    llm_client_tcp = '%s://%s:%s' % (llm_client_front_end.get('protocol', 'tcp'),
+                                     llm_client_front_end.get('host', 'localhost'),
+                                     llm_client_front_end.get('port', '7781'))
+    llm_client = LLMClient(llm_client_tcp)
     if app_scenario == tabs_title[0]:
         base_model_manager(file_status_manager,llm_client, default_base_model_name)
-
     elif app_scenario == tabs_title[1]:
-        if tabs_title_enabled[1]:
-            knowledgebase_manager(index_client, file_status_manager)
-        else:
-            st.write("配置文件里没开启该功能")
+        knowledgebase_manager(index_client, file_status_manager)
     elif app_scenario == tabs_title[2]:
-        if tabs_title_enabled[2]:
-            internet_search(index_client, file_status_manager)
-        else:
-            st.write("配置文件里没开启该功能")
+        internet_search(index_client, file_status_manager)
     elif app_scenario == tabs_title[3]:
         # 在这里添加微调选项卡的内容
-        if tabs_title_enabled[3]:
-            st.title("模型微调")
-            tuning_client_front_end = project_config.config.get('tuning', {}).get('front_end', {})
-            tuning_client_tcp = '%s://%s:%s' % (tuning_client_front_end.get('protocol', 'tcp'),
-                                                   tuning_client_front_end.get('host', 'localhost'),
-                                                   tuning_client_front_end.get('port', '7787'))
-            tuning_client = TuningClient(tuning_client_tcp)
-            jsonl2binidx_manager(tuning_client)
-            wandb_manager(tuning_client)
-            tuning_manager(tuning_client, app_scenario, )
-        else:
-            st.write("配置文件里没开启该功能")
+        st.title("模型微调")
+        tuning_client_front_end = project_config.config.get('tuning', {}).get('front_end', {})
+        tuning_client_tcp = '%s://%s:%s' % (tuning_client_front_end.get('protocol', 'tcp'),
+                                               tuning_client_front_end.get('host', 'localhost'),
+                                               tuning_client_front_end.get('port', '7787'))
+        tuning_client = TuningClient(tuning_client_tcp)
+        jsonl2binidx_manager(tuning_client)
+        wandb_manager(tuning_client)
+
     else:
-        if tabs_title_enabled[4]:
-            st.title("知识问答")
-            rag_chain(index_client, llm_client)
-        else:
-            st.write("配置文件里没开启该功能")
+        st.title("知识问答")
+        rag_chain(index_client, llm_client)
+
 
 
 if __name__ == "__main__":

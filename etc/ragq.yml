@@ -1,0 +1,30 @@
+llm:
+  service_module: llm_service
+  front_end:
+    host: localhost
+    protocol: tcp
+    port: 7781
+  back_end:
+    host: localhost
+    protocol: tcp
+    port: 7782
+index:
+  service_module: index_service
+  front_end:
+    host: localhost
+    protocol: tcp
+    port: 7783
+  back_end:
+    host: localhost
+    protocol: tcp
+    port: 7784
+tuning:
+  service_module: tuning_service
+  front_end:
+    host: localhost
+    protocol: tcp
+    port: 7787
+  back_end:
+    host: localhost
+    protocol: tcp
+    port: 7788

@@ -1,0 +1,12 @@
+service_module: llm_service
+back_end:
+  host: 0.0.0.0
+  protocol: tcp
+  port: 7782
+num_workers: 1
+spawn_method: spawn
+base_model_path: /home/liulonghua/RWKV-RAG-models/RWKV-x060-World-7B-v2.1-20240507-ctx4096.pth
+embedding_path: /home/liulonghua/RWKV-RAG-models/bge-m31
+reranker_path: /home/liulonghua/RWKV-RAG-models/BAAIbge-reranker-v2-m3
+state_path: /home/liulonghua/RWKV-RAG-models/state/qa/rwkv-2.pth
+device: cuda:3
