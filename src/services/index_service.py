@@ -70,60 +70,69 @@ class ServiceWorker(AbstractServiceWorker):
         process = subprocess.Popen(command, shell=True)
         print(f"Started indexing service with command {command}, pid is {process.pid}")
         time.sleep(5)
-        
-    def process(self, cmd):
-        if cmd['cmd'] == 'INDEX_TEXTS':
-            keys = cmd["keys"]
-            values = cmd["texts"]
-            collection_name=cmd['collection_name']
-            embeddings = self.llm_client.encode(values)["value"]
 
-            chroma_client = chromadb.HttpClient(host=self.chroma_host,
-                                                port=self.chroma_port)
-            
-            collection = chroma_client.get_collection(collection_name)
-            
-            collection.add(
-                ids=keys,
-                embeddings=embeddings,
-                documents=values
-            )
-            #index the value
-            return True
-        elif cmd['cmd'] =='SHOW_COLLECTIONS':
-            # TODO 如果集合数太多，要做分页处理
-            chroma_client = chromadb.HttpClient(host=self.chroma_host,
-                                                port=self.chroma_port)
-            collections = chroma_client.list_collections()
-           
-            return [(i.name, i.metadata) for i in collections]
-        elif cmd['cmd'] =='CREATE_COLLECTION':
-            collection_name=cmd['collection_name']
-            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            chroma_client = chromadb.HttpClient(host=self.chroma_host,
-                                                port=self.chroma_port)
-            chroma_client.create_collection(collection_name,
-                                            metadata={"hnsw:space": "cosine",
-                                                      "create_time": now})
-            return True
-        elif cmd['cmd'] =='DELETE_COLLECTION':
-            collection_name=cmd['collection_name']
-            chroma_client = chromadb.HttpClient(host=self.chroma_host,
-                                                port=self.chroma_port)
-            chroma_client.delete_collection(collection_name)
-            return True    
-        elif cmd['cmd'] == 'SEARCH_NEARBY':
-            text = cmd["text"]
-            collection_name = cmd.get('collection_name')
-            embedings = self.llm_client.encode([text])["value"]
-            print(f"Searching nearby for {text} with embeddings {embedings}")
-            chroma_client = chromadb.HttpClient(host=self.chroma_host,
-                                                port=self.chroma_port)
-            collection = chroma_client.get_collection(collection_name or CHROMA_DB_COLLECTION_NAME)
-            search_result = collection.query(
-                query_embeddings=embedings,
-                n_results=3,
-                include=['documents','distances'])
-            return search_result
-        return ServiceWorker.UNSUPPORTED_COMMAND
+    def cmd_index_texts(self, cmd: dict):
+        keys = cmd["keys"]
+        values = cmd["texts"]
+        collection_name = cmd['collection_name']
+        embeddings = self.llm_client.encode(values)["value"]
+
+        chroma_client = chromadb.HttpClient(host=self.chroma_host,
+                                            port=self.chroma_port)
+
+        collection = chroma_client.get_collection(collection_name)
+
+        collection.add(
+            ids=keys,
+            embeddings=embeddings,
+            documents=values
+        )
+        # index the value
+        return True
+
+    def cmd_show_collections(self, cmd: dict):
+        # TODO 如果集合数太多，要做分页处理
+        chroma_client = chromadb.HttpClient(host=self.chroma_host,
+                                            port=self.chroma_port)
+        collections = chroma_client.list_collections()
+
+        return [(i.name, i.metadata) for i in collections]
+
+    def cmd_create_collection(self, cmd: dict):
+        collection_name = cmd['collection_name']
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        chroma_client = chromadb.HttpClient(host=self.chroma_host,
+                                            port=self.chroma_port)
+        chroma_client.create_collection(collection_name,
+                                        metadata={"hnsw:space": "cosine",
+                                                  "create_time": now})
+        return True
+
+    def cmd_delete_collection(self, cmd: dict):
+        collection_name = cmd['collection_name']
+        chroma_client = chromadb.HttpClient(host=self.chroma_host,
+                                            port=self.chroma_port)
+        chroma_client.delete_collection(collection_name)
+        return True
+
+    def cmd_search_nearby(self, cmd: dict):
+        text = cmd["text"]
+        collection_name = cmd.get('collection_name')
+        embedings = self.llm_client.encode([text])["value"]
+        print(f"Searching nearby for {text} with embeddings {embedings}")
+        chroma_client = chromadb.HttpClient(host=self.chroma_host,
+                                            port=self.chroma_port)
+        collection = chroma_client.get_collection(collection_name or CHROMA_DB_COLLECTION_NAME)
+        search_result = collection.query(
+            query_embeddings=embedings,
+            n_results=3,
+            include=['documents', 'distances'])
+        return search_result
+
+def process(self, cmd):
+    cmd_name = cmd.get('cmd', '').lower()
+    function_name = f'cmd_{cmd_name}'
+    if hasattr(self, function_name) and callable(getattr(self, function_name)):
+        return getattr(self, function_name)(cmd)
+    return ServiceWorker.UNSUPPORTED_COMMAND
 

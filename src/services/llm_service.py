@@ -183,40 +183,41 @@ class ServiceWorker(AbstractServiceWorker):
     def init_with_config(self, config):
         base_model_file = config.get("base_model_path") # 默认使用配置文件的模型
         self.llm_service = LLMService(base_model_file, config)
-    
-    def process(self, cmd):
-        if cmd['cmd'] == 'GET_EMBEDDINGS':
-            texts = cmd.get("texts")
-            bgem3_path = cmd.get("bgem3_path")
-            value = self.llm_service.get_embeddings(texts, bgem3_path)
-            return value
-        elif cmd['cmd'] == 'GET_CROSS_SCORES':
-            texts_0 = cmd.get("texts_0")
-            texts_1 = cmd.get("texts_1")
-            rerank_path = cmd.get("rerank_path")
-            value = self.llm_service.cross_encode_texts(texts_0,texts_1, rerank_path)
-            return value
-        # elif cmd['cmd'] == 'BEAM_GENERATE':
-        #     instruction = cmd.get("instruction")
-        #     input_text = cmd.get("input_text")
-        #     token_count = cmd.get('token_count', 128)
-        #     num_beams = cmd.get('num_beams', 5)
-        #     value=self.llm_service.beam_generate(instruction, input_text, token_count, num_beams)
-        #     return value
-        elif cmd['cmd'] == 'SAMPLING_GENERATE':
-            instruction = cmd.get("instruction")
-            input_text = cmd["input_text"]
-            temperature = cmd.get('temperature', 1.0)
-            top_p = cmd.get('top_p', 0)
-            state_file = cmd.get('state_file')
-            template_prompt = cmd.get('template_prompt')
-            base_model_path = cmd.get('base_model_path')
-            value = self.llm_service.sampling_generate(instruction, input_text, state_file,temperature,top_p,
-                                                       template_prompt=template_prompt, base_model_path=base_model_path)
-            return value
-        elif cmd['cmd'] == 'RELOAD_BASE_MODEL':
-            base_model_path = cmd.get("base_model_path")
-            self.llm_service.reload_base_model(base_model_path)
-            return 'ok'
+
+    def cmd_get_embeddings(self, cmd: dict):
+        texts = cmd.get("texts")
+        bgem3_path = cmd.get("bgem3_path")
+        value = self.llm_service.get_embeddings(texts, bgem3_path)
+        return value
+
+    def cmd_get_cross_scores(self, cmd: dict):
+        texts_0 = cmd.get("texts_0")
+        texts_1 = cmd.get("texts_1")
+        rerank_path = cmd.get("rerank_path")
+        value = self.llm_service.cross_encode_texts(texts_0,texts_1, rerank_path)
+        return value
+
+    def cmd_sampling_generate(self, cmd: dict):
+        instruction = cmd.get("instruction")
+        input_text = cmd["input_text"]
+        temperature = cmd.get('temperature', 1.0)
+        top_p = cmd.get('top_p', 0)
+        state_file = cmd.get('state_file')
+        template_prompt = cmd.get('template_prompt')
+        base_model_path = cmd.get('base_model_path')
+        value = self.llm_service.sampling_generate(instruction, input_text, state_file, temperature, top_p,
+                                                   template_prompt=template_prompt, base_model_path=base_model_path)
+        return value
+
+    def cmd_reload_base_model(self, cmd: dict):
+        base_model_path = cmd.get("base_model_path")
+        self.llm_service.reload_base_model(base_model_path)
+        return 'ok'
+
+    def process(self, cmd: dict):
+        cmd_name = cmd.get('cmd', '').lower()
+        function_name = f'cmd_{cmd_name}'
+        if hasattr(self, function_name) and callable(getattr(self, function_name)):
+            return getattr(self, function_name)(cmd)
         return ServiceWorker.UNSUPPORTED_COMMAND
 
