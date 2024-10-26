@@ -8,6 +8,13 @@ class LLMClient:
         self.socket.connect(url)
         self.socket.setsockopt(zmq.RCVTIMEO, 60000 * 5)
 
+    def llm_config(self):
+        cmd = {"cmd": "LLM_CONFIG"}
+        self.socket.send(msgpack.packb(cmd, use_bin_type=True))
+        msg = self.socket.recv()
+        resp = msgpack.unpackb(msg, raw=False)
+        return resp
+
     def encode(self,texts):
         cmd = {"cmd": "GET_EMBEDDINGS", "texts": texts}
         self.socket.send(msgpack.packb(cmd, use_bin_type=True))

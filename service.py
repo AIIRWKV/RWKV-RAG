@@ -3,20 +3,9 @@ import multiprocessing
 import sys
 import argparse
 
-import zmq
-
 from src.services import *
 from src.services import public_service_workers
 from configuration import LLMServiceConfig, IndexServiceConfig, TuningServiceConfig
-
-def start_proxy(frontend_url, backend_url):
-    print(f'\033[91mstart proxy {frontend_url} {backend_url}\033[0m')
-    context = zmq.Context()
-    frontend = context.socket(zmq.ROUTER)
-    frontend.bind(frontend_url)
-    backend = context.socket(zmq.DEALER)
-    backend.bind(backend_url)
-    zmq.proxy(frontend, backend)
 
 
 def start_process(service_cls: AbstractServiceWorker, backend_url: str,config: dict):
@@ -60,7 +49,6 @@ def main(service_name:str = None):
             config_service = TuningServiceConfig(f'etc/{service}_config.yml').config
         else:
             continue
-        #config_service = config.config[service]
         print(f"Starting service {service}")
         service_module_name = config_service["service_module"]
         # 类字符串名称

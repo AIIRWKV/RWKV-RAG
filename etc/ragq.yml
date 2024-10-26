@@ -1,5 +1,4 @@
 llm:
-  service_module: llm_service
   front_end:
     host: localhost
     protocol: tcp
@@ -9,7 +8,6 @@ llm:
     protocol: tcp
     port: 7782
 index:
-  service_module: index_service
   front_end:
     host: localhost
     protocol: tcp
@@ -18,13 +16,6 @@ index:
     host: localhost
     protocol: tcp
     port: 7784
-tuning:
-  service_module: tuning_service
-  front_end:
-    host: localhost
-    protocol: tcp
-    port: 7787
-  back_end:
-    host: localhost
-    protocol: tcp
-    port: 7788
+base:
+  knowledge_base_path:  /home/liulonghua/RWKV-RAG-Data
+  sqlite_db_path: /home/liulonghua/RWKV-RAG-Data/files_services.db

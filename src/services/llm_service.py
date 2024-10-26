@@ -9,7 +9,6 @@ from rwkv.utils import PIPELINE, PIPELINE_ARGS
 
 from src.services import AbstractServiceWorker
 #from rwkv_lm_ext.src.model_run import generate_beamsearch
-from configuration import LLMServiceConfig
 
 os.environ['RWKV_JIT_ON'] = '1'
 os.environ['RWKV_T_MAX'] = '4096'
@@ -117,7 +116,7 @@ class LLMService:
         if isinstance(inputs,str):
             inputs = [inputs]
         if not bgem3_path:
-            bgem3_path = self.config.get('bgem3_path')
+            bgem3_path = self.config.get('embedding_path')
         self.load_bgem3(bgem3_path)
         outputs = self.bgem3.encode(inputs, 
                                     batch_size=12, 
@@ -127,7 +126,7 @@ class LLMService:
         return outputs
     def cross_encode_text(self,text_a, text_b, rerank_path=None):
         if not rerank_path:
-            rerank_path = self.config.get('rerank_path')
+            rerank_path = self.config.get('reranker_path')
         self.load_rerank(rerank_path)
         score = self.reranker.compute_score([text_a, text_b])
         return score
@@ -169,11 +168,9 @@ class LLMService:
             ctx = f'User: 请阅读下文，回答:{instruction}\\n{input_text}\\n问题:{instruction}\\n\\nAssistant:'
         else:
             ctx = template_prompt
-        print('prompt=',ctx)
         try:
             pipeline = PIPELINE(self.model, "rwkv_vocab_v20230424")
             output = pipeline.generate(ctx, token_count=1500, args=gen_args, state=states_value)
-            print(output)
         except:
             raise ValueError(traceback.format_exc())
         return output
@@ -183,6 +180,12 @@ class ServiceWorker(AbstractServiceWorker):
     def init_with_config(self, config):
         base_model_file = config.get("base_model_path") # 默认使用配置文件的模型
         self.llm_service = LLMService(base_model_file, config)
+
+    def cmd_llm_config(self, cmd: dict):
+        """
+        LLM 服务配置
+        """
+        return self.service_config
 
     def cmd_get_embeddings(self, cmd: dict):
         texts = cmd.get("texts")

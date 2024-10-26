@@ -16,6 +16,7 @@ class AbstractServiceWorker(ABC):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REP)
         self.socket.connect(backend_url)
+        self.service_config = config  # 服务的配置
         print(
             f"\033[93m Service worker {self.__class__.__name__} connected to {backend_url} at process {os.getpid()}\033[0m")
 

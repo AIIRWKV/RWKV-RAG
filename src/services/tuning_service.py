@@ -89,6 +89,12 @@ class ServiceWorker(AbstractServiceWorker):
         obj.run()
         return obj.output_file_name_prefix
 
+    def cmd_tuning_config(self, cmd: dict):
+        """
+        tuning 服务配置
+        """
+        return self.service_config
+
     def cmd_wandb(self, cmd: dict):
         return self.wandb_manager.user_name()
 

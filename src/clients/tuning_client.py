@@ -10,6 +10,11 @@ class TuningClient:
         self.socket.connect(frontend_url)
         self.socket.setsockopt(zmq.RCVTIMEO, 60000 * 5)
 
+    def tuning_config(self):
+        cmd = {"cmd": "TUNING_CONFIG"}
+        self.socket.send(msgpack.packb(cmd, use_bin_type=True))
+        response = self.socket.recv()
+        return msgpack.unpackb(response, raw=False)
 
     def jsonl2binidx(self,jsonl_file: str=None,
                   n_epoch: int=3,

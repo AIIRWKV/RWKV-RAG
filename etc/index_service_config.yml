@@ -4,9 +4,7 @@ back_end:
   host: 0.0.0.0
   protocol: tcp
   port: 7784
-chroma_path: /home/liulonghua/RWKV-RAG-Data/chroma
+chroma_path: /home/rwkv/Data/chroma
 chroma_port: 9998
 chroma_host: 0.0.0.0
 num_workers: 2
-llm_front_end_url: tcp://0.0.0.0:7781
-knowledge_base_path:  /home/liulonghua/RWKV-RAG-Data

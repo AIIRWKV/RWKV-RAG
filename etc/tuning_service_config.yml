@@ -1,5 +1,0 @@
-service_module: tuning_service
-back_end:
-  host: 0.0.0.0
-  protocol: tcp
-  port: 7788

@@ -6,7 +6,6 @@ from multiprocessing import Lock
 import chromadb
 
 from src.services import AbstractServiceWorker
-from src.clients import LLMClient
 
 
 CHROMA_DB_COLLECTION_NAME = 'initial'
@@ -17,15 +16,16 @@ class ServiceWorker(AbstractServiceWorker):
     lock = Lock()
 
     def init_with_config(self, config):
-        
-        llm_front_end_url = config.get("llm_front_end_url", '')
-        self.llm_client = LLMClient(llm_front_end_url)
+        # llm_front_end_url = config.get("llm_front_end_url", '')
+        # self.llm_client = LLMClient(llm_front_end_url)
+
+        # 向量数据库相关配置
         chroma_port = config["chroma_port"]
         chroma_host = config["chroma_host"]
-
         self.chroma_host = chroma_host
         self.chroma_port = chroma_port
         self.init_chroma_db()
+
 
     def init_chroma_db(self):
         """
@@ -50,7 +50,7 @@ class ServiceWorker(AbstractServiceWorker):
     @staticmethod
     def init_once(config):
         if config.get('docker'):
-            # 如果是docker部署的话，不需要检查
+            # 如果是docker部署的话，向量数据库会单独部署，不需要启动
             return
         # 检测chroma db是否已启动
         command1 = "ps -ef | grep '{}'".format("chroma")
@@ -71,11 +71,20 @@ class ServiceWorker(AbstractServiceWorker):
         print(f"Started indexing service with command {command}, pid is {process.pid}")
         time.sleep(5)
 
+
+    def cmd_index_config(self, cmd: dict):
+        """
+        index 服务配置
+        """
+        config = self.service_config
+        return config
+
     def cmd_index_texts(self, cmd: dict):
         keys = cmd["keys"]
         values = cmd["texts"]
         collection_name = cmd['collection_name']
-        embeddings = self.llm_client.encode(values)["value"]
+        embeddings = cmd['embeddings']
+        # embeddings = self.llm_client.encode(values)["value"]
 
         chroma_client = chromadb.HttpClient(host=self.chroma_host,
                                             port=self.chroma_port)
@@ -116,23 +125,23 @@ class ServiceWorker(AbstractServiceWorker):
         return True
 
     def cmd_search_nearby(self, cmd: dict):
-        text = cmd["text"]
+        # text = cmd["text"]
         collection_name = cmd.get('collection_name')
-        embedings = self.llm_client.encode([text])["value"]
-        print(f"Searching nearby for {text} with embeddings {embedings}")
+        embeddings = cmd.get('embeddings')
+        # embeddings = self.llm_client.encode([text])["value"]
         chroma_client = chromadb.HttpClient(host=self.chroma_host,
                                             port=self.chroma_port)
         collection = chroma_client.get_collection(collection_name or CHROMA_DB_COLLECTION_NAME)
         search_result = collection.query(
-            query_embeddings=embedings,
+            query_embeddings=embeddings,
             n_results=3,
             include=['documents', 'distances'])
         return search_result
 
-def process(self, cmd):
-    cmd_name = cmd.get('cmd', '').lower()
-    function_name = f'cmd_{cmd_name}'
-    if hasattr(self, function_name) and callable(getattr(self, function_name)):
-        return getattr(self, function_name)(cmd)
-    return ServiceWorker.UNSUPPORTED_COMMAND
+    def process(self, cmd):
+        cmd_name = cmd.get('cmd', '').lower()
+        function_name = f'cmd_{cmd_name}'
+        if hasattr(self, function_name) and callable(getattr(self, function_name)):
+            return getattr(self, function_name)(cmd)
+        return ServiceWorker.UNSUPPORTED_COMMAND
 
