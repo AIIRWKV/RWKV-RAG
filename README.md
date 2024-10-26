@@ -116,7 +116,7 @@ host 和端口号等参数请按需调整。
 
 Index Service 配置项会影响 RWKV-RAG 系统的知识库管理等 ChromaDB 数据库相关服务。请重点关注以下配置项：
 
-- chroma_db_path: ChromaDB 数据库存放数据路径
+- chroma_path: ChromaDB 数据库存放数据路径
 - chroma_port: ChromaDB 端口
 - chroma_host: ChromaDB 主机 IP
 - sqlite_db_path: sqlite数据库存放数据路径
