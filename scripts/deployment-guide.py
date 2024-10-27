@@ -160,6 +160,10 @@ def main():
 
     if app_scenario == tabs_title[0]:
        singe_node_deployment_manager()
+    elif app_scenario == tabs_title[1]:
+        pass
+    else:
+        st.markdown('##### 待补充')
 
 
 
