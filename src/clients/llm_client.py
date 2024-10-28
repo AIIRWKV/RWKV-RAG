@@ -35,8 +35,8 @@ class LLMClient:
         resp = msgpack.unpackb(msg, raw=False)
         return resp
 
-    def sampling_generate(self, instruction, input_text, state_file, token_count=128, temperature=1.0,
-                          top_p=0,template_prompt=None, base_model_path=None):
+    def sampling_generate(self, instruction, input_text, state_file, token_count=2000, temperature=0.3,
+                          top_p=0.2,template_prompt=None, base_model_path=None):
         cmd = {
             "cmd": "SAMPLING_GENERATE",
             "instruction": instruction,
