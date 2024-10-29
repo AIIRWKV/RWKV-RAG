@@ -145,7 +145,7 @@ class LLMService:
                           top_p=0.2,
                           top_k=0,
                           alpha_frequency=0.5,
-                          alpha_presence=0.5,
+                          alpha_presence=0.67,
                           alpha_decay=0.996,
                           template_prompt=None,
                           base_model_path=None,
@@ -163,10 +163,10 @@ class LLMService:
                         alpha_presence = alpha_presence,
                         alpha_decay = alpha_decay, # gradually decay the penalty
                         token_ban = [0], # ban the generation of some tokens
-                        token_stop = [11,261], # stop generation whenever you see any token here
+                        token_stop = [0，1], # stop generation whenever you see any token here
                         chunk_len = 256)
         if not template_prompt:
-            ctx = f'User: 请阅读下文，回答:{instruction}\\n{input_text}\\n问题:{instruction}\\n\\nAssistant:'
+            ctx = f'Instruction: {instruction}\nInput: {input_text}\n\nResponse:'
         else:
             ctx = template_prompt
         print('prompt=',ctx)
