@@ -172,7 +172,7 @@ class LLMService:
         print('prompt=',ctx)
         try:
             pipeline = PIPELINE(self.model, "rwkv_vocab_v20230424")
-            output = pipeline.generate(ctx, token_count=2000, args=gen_args, state=states_value)
+            output = pipeline.generate(ctx, token_count=1200, args=gen_args, state=states_value)
             print(output)
         except:
             raise ValueError(traceback.format_exc())
