@@ -7,7 +7,7 @@
 import multiprocessing
 import zmq
 
-from configuration import ClientCofig
+from configuration import ClientConfig
 
 def start_proxy(frontend_url, backend_url):
     print(f'\033[91mstart proxy {frontend_url} {backend_url}\033[0m')
@@ -20,7 +20,7 @@ def start_proxy(frontend_url, backend_url):
 
 
 def start_service_proxy():
-    project_config = ClientCofig('etc/ragq.yml')
+    project_config = ClientConfig('etc/ragq.yml')
     config = project_config.config
     for service_name, service_config in config.items():
         if 'front_end' in service_config and 'back_end' in service_config:

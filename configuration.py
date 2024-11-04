@@ -95,19 +95,19 @@ class IndexServiceConfig(metaclass=SingletonMeta):
         if not (isinstance(chroma_port, int) or (isinstance(chroma_port, str) and chroma_port.isdigit())):
             raise ValueError(f"chroma_port is required for index service")
 
-class TuningServiceConfig(metaclass=SingletonMeta):
-    def __init__(self, config_file):
-        if not os.path.exists(config_file):
-            raise FileNotFoundError(f"Config file {config_file} not found")
-        with open(config_file) as f:
-            try:
-                self.config = yaml.safe_load(f)
-            except yaml.YAMLError as exc:
-                raise ValueError(f"Invalid config file {config_file}")
-        self.config_file_path = config_file
+# class TuningServiceConfig(metaclass=SingletonMeta):
+#     def __init__(self, config_file):
+#         if not os.path.exists(config_file):
+#             raise FileNotFoundError(f"Config file {config_file} not found")
+#         with open(config_file) as f:
+#             try:
+#                 self.config = yaml.safe_load(f)
+#             except yaml.YAMLError as exc:
+#                 raise ValueError(f"Invalid config file {config_file}")
+#         self.config_file_path = config_file
 
 
-class ClientCofig(metaclass=SingletonMeta):
+class ClientConfig(metaclass=SingletonMeta):
     def __init__(self, config_file):
         if not os.path.exists(config_file):
             raise FileNotFoundError(f"Config file {config_file} not found")

@@ -35,7 +35,6 @@ class LLMService:
         """
 
         self.base_rwkv = base_rwkv
-        self._is_state_tuning = True # 暂支持state，后续支持lora
         self.device = device
         self.dtype = dtype
         self.kwargs = kwargs
@@ -57,28 +56,28 @@ class LLMService:
         self._current_states_value = []
 
 
-    def load_state_tuning(self, states_file):
-        """
-        加载state模型文件
-        """
-        if self._current_states_value and self._current_states_path == states_file:
-            return self._current_states_value
-        states = torch.load(states_file)
-        states_value = []
-        for i in range(self.model.args.n_layer):
-            key = f'blocks.{i}.att.time_state'
-            value = states[key]
-            prev_x = torch.zeros(self.model.args.n_embd, device=self.device, dtype=torch.float16)
-            prev_states = value.clone().detach().to(device=self.device, dtype=torch.float16).transpose(1, 2)
-            prev_ffn = torch.zeros(self.model.args.n_embd, device=self.device, dtype=torch.float16)
-            states_value.append(prev_x)
-            states_value.append(prev_states)
-            states_value.append(prev_ffn)
-        self._current_states_value = states_value
-        self._current_states_path = states_file
-        return states_value
+    # def load_state_tuning(self, states_file):
+    #     """
+    #     加载state模型文件
+    #     """
+    #     if self._current_states_value and self._current_states_path == states_file:
+    #         return self._current_states_value
+    #     states = torch.load(states_file)
+    #     states_value = []
+    #     for i in range(self.model.args.n_layer):
+    #         key = f'blocks.{i}.att.time_state'
+    #         value = states[key]
+    #         prev_x = torch.zeros(self.model.args.n_embd, device=self.device, dtype=torch.float16)
+    #         prev_states = value.clone().detach().to(device=self.device, dtype=torch.float16).transpose(1, 2)
+    #         prev_ffn = torch.zeros(self.model.args.n_embd, device=self.device, dtype=torch.float16)
+    #         states_value.append(prev_x)
+    #         states_value.append(prev_states)
+    #         states_value.append(prev_ffn)
+    #     self._current_states_value = states_value
+    #     self._current_states_path = states_file
+    #     return states_value
 
-    def reload_base_model(self, base_model_path):
+    def reload_base_model(self, base_model_path, strategy=None):
         if not os.path.exists(base_model_path):
             raise FileNotFoundError(f'Model not found at {base_model_path}')
         if base_model_path == self._current_base_model_path and self.model:
@@ -89,7 +88,7 @@ class LLMService:
         self.model = None
         self._current_states_value = []
         gc.collect()
-        strategy = self.kwargs.get('strategy', 'cuda fp16')
+        strategy = strategy or 'cuda fp16'
         self.model = OriginRWKV(base_model_path, strategy=strategy)
         self._current_base_model_path = base_model_path
 
@@ -119,9 +118,8 @@ class LLMService:
             bgem3_path = self.config.get('embedding_path')
         self.load_bgem3(bgem3_path)
         outputs = self.bgem3.encode(inputs, 
-                                    batch_size=12, 
                                     max_length=512,
-                                    )['dense_vecs'].tolist()
+                                    )['dense_vecs'].tolist() # 要进行网络传输，所以转成list
 
         return outputs
     def cross_encode_text(self,text_a, text_b, rerank_path=None):
@@ -140,46 +138,48 @@ class LLMService:
 
 
     def sampling_generate(self,instruction,input_text,state_file,
-                          temperature=1.0,
+                          temperature=0.3,
                           top_p=0.2,
                           top_k=0,
                           alpha_frequency=0.5,
-                          alpha_presence=0.5,
+                          alpha_presence=0.67,
                           alpha_decay=0.996,
                           template_prompt=None,
                           base_model_path=None,
                          ):
         if base_model_path:
             self.reload_base_model(base_model_path)
-        if not state_file:
-            state_file = self.config.get('state_path')
-        if state_file:
-            states_value = self.load_state_tuning(state_file)
-        else:
-            states_value = None
-        gen_args = PIPELINE_ARGS(temperature = temperature, top_p = top_p, top_k=top_k, # top_k = 0 then ignore
-                        alpha_frequency = alpha_frequency,
-                        alpha_presence = alpha_presence,
-                        alpha_decay = alpha_decay, # gradually decay the penalty
-                        token_ban = [0], # ban the generation of some tokens
-                        token_stop = [11,261], # stop generation whenever you see any token here
-                        chunk_len = 256)
+        # if not state_file:
+        #     state_file = self.config.get('state_path')
+        # if state_file:
+        #     states_value = self.load_state_tuning(state_file)
+        # else:
+        #     states_value = None
+        states_value = None
+        gen_args = PIPELINE_ARGS(temperature=temperature, top_p=top_p, top_k=top_k,  # top_k = 0 then ignore
+                                 alpha_frequency=alpha_frequency,
+                                 alpha_presence=alpha_presence,
+                                 alpha_decay=alpha_decay,  # gradually decay the penalty
+                                 token_ban=[0],  # ban the generation of some tokens
+                                 token_stop=[0, 1],  # stop generation whenever you see any token here
+                                 chunk_len=256)
         if not template_prompt:
-            ctx = f'User: 请阅读下文，回答:{instruction}\\n{input_text}\\n问题:{instruction}\\n\\nAssistant:'
+            ctx = f'Instruction: {instruction}\nInput: {input_text}\n\nResponse:'
         else:
             ctx = template_prompt
+        print(ctx)
         try:
             pipeline = PIPELINE(self.model, "rwkv_vocab_v20230424")
-            output = pipeline.generate(ctx, token_count=1500, args=gen_args, state=states_value)
+            output = pipeline.generate(ctx, token_count=1200, args=gen_args, state=states_value)
+            return output
         except:
             raise ValueError(traceback.format_exc())
-        return output
 
 
 class ServiceWorker(AbstractServiceWorker):
     def init_with_config(self, config):
         base_model_file = config.get("base_model_path") # 默认使用配置文件的模型
-        self.llm_service = LLMService(base_model_file, config)
+        self.llm_service = LLMService(base_model_file, config, strategy=config.get('strategy'))
 
     def cmd_llm_config(self, cmd: dict):
         """
@@ -203,12 +203,12 @@ class ServiceWorker(AbstractServiceWorker):
     def cmd_sampling_generate(self, cmd: dict):
         instruction = cmd.get("instruction")
         input_text = cmd["input_text"]
-        temperature = cmd.get('temperature', 1.0)
-        top_p = cmd.get('top_p', 0)
+        # temperature = cmd.get('temperature', 1.0)
+        # top_p = cmd.get('top_p', 0)
         state_file = cmd.get('state_file')
         template_prompt = cmd.get('template_prompt')
         base_model_path = cmd.get('base_model_path')
-        value = self.llm_service.sampling_generate(instruction, input_text, state_file, temperature, top_p,
+        value = self.llm_service.sampling_generate(instruction, input_text, state_file,
                                                    template_prompt=template_prompt, base_model_path=base_model_path)
         return value
 

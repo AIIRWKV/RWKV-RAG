@@ -3,7 +3,6 @@ import asyncio
 import re
 import string
 import random
-from collections import OrderedDict
 
 import streamlit as st
 import pandas as pd
@@ -12,14 +11,12 @@ from src.clients.index_client import IndexClient
 from src.clients.llm_client import LLMClient
 from src.utils.loader import Loader
 from src.utils.internet import search_on_baike
-from src.clients.tuning_client import TuningClient
 from src.clients import FileStatusManager
-from configuration import ClientCofig
+from configuration import ClientConfig
 
 
-HAS_START_PROXY = False
 
-project_config = ClientCofig('etc/ragq.yml')
+project_config = ClientConfig('etc/ragq.yml')
 
 parent_dir = project_config.config.get('base', {}).get('knowledge_base_path')
 print(parent_dir)
@@ -329,140 +326,11 @@ def rag_chain(index_client: IndexClient, llm_client: LLMClient):
 
 
 
-def wandb_manager(client: TuningClient):
-    """
-    wandb 管理
-    """
-    st.subheader('wandb管理')
-    username_dict = client.wandb_info()
-    username = username_dict.get('value', '')
-    username = username or '暂未登录'
-    st.markdown('<span style="font-size: 19x; font-weight: bold;">当前用户</span>', unsafe_allow_html=True)
-    st.markdown(f"{username}" , unsafe_allow_html=True)
-
-    st.markdown('<span style="font-size: 19x; font-weight: bold;">登录</span>', unsafe_allow_html=True)
-    st.markdown(f"输入api key,点击登录即可完成账号登录", unsafe_allow_html=True)
-    api_key = st.text_input("请输入wandb api key:", key="api_key")
-    if st.button("登录") and api_key:
-        resp = client.wandb_login(api_key)
-        if str(resp.get('code')) == '200':
-            st.success(resp.get('value', ''))
-        else:
-            st.warning(resp.get('value', ''))
-    st.markdown('<span style="font-size: 19x; font-weight: bold;">添加项目</span>', unsafe_allow_html=True)
-    project_name = st.text_input("请输入wandb项目名:", key="project_name")
-    if st.button("添加") and project_name:
-        resp = client.wandb_add_project(project_name)
-        if str(resp.get('code')) == '200':
-            st.success(resp.get('value', ''))
-        else:
-            st.warning(resp.get('value', ''))
-
-
-
-def base_model_manager(file_client: FileStatusManager,llm_client:LLMClient, current_base_model_name, default_base_model_path):
-    st.title("模型管理")
-    st.subheader("重启基底模型")
-    st.markdown(
-        '<span style="font-size: 16px; color: blue;">❗如果更换了基底模型可能影响到正在执行的任务。 更换后下次重启服务时基底模型就是本次更该后的模型</span>',
-        unsafe_allow_html=True)
-    st.write('当前基底模型: %s (%s)' % (current_base_model_name, default_base_model_path))
-
-    base_model_list  = file_client.get_base_model_list()
-    active_base_models = OrderedDict()
-    if base_model_list:
-        names = []
-        paths = []
-        statuss = []
-        create_times = []
-        for line in base_model_list:
-            names.append(line[0])
-            paths.append(line[1])
-            if line[2] == 1:
-                active_base_models.setdefault(line[0], line[1])
-                statuss.append('上线')
-            else:
-                statuss.append('下线')
-            create_times.append(line[3])
-    else:
-        names = ['default']
-
-    reload_base_model_name = st.selectbox("请选择要重启的基底模型:", [''] + list(active_base_models.keys()))
-    if st.button("重启") and reload_base_model_name:
-        new_base_model_path = active_base_models[reload_base_model_name]
-        if llm_client:
-            llm_client.reload_base_model(new_base_model_path)
-            st.success('重启成功')
-            project_config.set_llm_service_config(base_model_path=new_base_model_path)
-            file_client.create_or_update_using_base_model(reload_base_model_name)
-        else:
-            st.warning("LLM 服务未开启")
-
-
-    if reload_base_model_name == current_base_model_name:
-        st.warning("需要重启的基底模型与当前基底模型一样。")
-
-
-    st.subheader("基底模型列表")
-    if base_model_list:
-        df = pd.DataFrame({'名称': names, '路径': paths, '状态': statuss, '创建时间': create_times})
-        st.dataframe(df, use_container_width=True)
-    else:
-        names = ['default']
-        st.warning("没有找到基底模型。请先添加基底模型")
-
-    st.subheader("新增基底模型")
-    new_base_model_name = st.text_input("请输入基底模型的名称(唯一):", key='new_base_model_name')
-    new_base_model_path = st.text_input("请输入基底模型的路径:", key='new_base_model_path')
-
-    if st.button('添加'):
-        if new_base_model_name:
-           if not 3 <= len(new_base_model_name) <= 64:
-               st.warning("基底模型的名称长度必须在3到64个字符之间。")
-        else:
-            st.warning("请输入基底模型名称。")
-        if new_base_model_path:
-            if not os.path.exists(new_base_model_path):
-                st.warning("基底模型的路径不存在。")
-        else:
-            st.warning("请输入基底模型路径。")
-
-        code= file_client.add_base_model(new_base_model_name, new_base_model_path)
-        if code == 0:
-            st.warning(f"基底模型{new_base_model_name}已存在")
-        else:
-            st.success("基底模型添加成功。")
-    st.subheader('修改基底模型')
-    change_base_model_name = st.selectbox("请选择基底模型:", [''] + names, key='change_base_model_name')
-    change_base_model_path = st.text_input("请输入基底模型的路径:", key='change_base_model_path')
-    if st.button('修改') and change_base_model_name and change_base_model_path:
-        file_client.change_base_model(change_base_model_name, change_base_model_path)
-        st.success("基底模型修改成功。")
-
-    st.subheader("激活基底模型")
-    st.markdown(
-        '<span style="font-size: 16px; color: blue;">状态是上线的基底模型才能使用</span>',
-        unsafe_allow_html=True)
-    active_base_model_name = st.selectbox("请选择基底模型:", [''] + names, key='active_base_model_name')
-    if st.button('激活') and active_base_model_name:
-        file_client.active_base_model(active_base_model_name)
-        st.success("基底模型激活成功。")
-
-    st.subheader("下线基底模型")
-    offline_base_model_name = st.selectbox("请选择基底模型:", [''] + names, key='offline_base_model_name')
-    if offline_base_model_name == 'default':
-        st.warning("default 模型不能下线，可以通过修改default模型的路径来实现你的需求。")
-    if st.button('下线') and offline_base_model_name:
-        file_client.offline_base_model(offline_base_model_name)
-        st.success("基底模型下线成功。")
-
-
-
 
 def main():
     # 初始化客户端
 
-    tabs_title = ["模型管理", "知识库管理", "知识入库", "知识问答"]
+    tabs_title = ["知识库管理", "知识入库", "知识问答"]
     index_client_front_end = project_config.config.get('index', {}).get('front_end', {})
     index_client_tcp = '%s://%s:%s' % (index_client_front_end.get('protocol', 'tcp'),
                                        index_client_front_end.get('host', 'localhost'),
@@ -508,10 +376,8 @@ def main():
         st.session_state.state_file_path = st.selectbox("记忆状态", [default_state_path])
 
     if app_scenario == tabs_title[0]:
-        base_model_manager(file_status_manager,llm_client, default_base_model_name, default_base_model_path)
-    elif app_scenario == tabs_title[1]:
         knowledgebase_manager(index_client, file_status_manager)
-    elif app_scenario == tabs_title[2]:
+    elif app_scenario == tabs_title[1]:
         internet_search(index_client, file_status_manager, llm_client)
 
     else:

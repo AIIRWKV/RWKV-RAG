@@ -1,10 +1,10 @@
 service_module: index_service
-docker: false
 back_end:
   host: 0.0.0.0
   protocol: tcp
   port: 7784
-chroma_path: /home/rwkv/RWKV-RAG-Data/chroma
-chroma_port: 9998
-chroma_host: 0.0.0.0
+vectordb_host:
+vectordb_name:
+vectordb_path:
+vectordb_port:
 num_workers: 2

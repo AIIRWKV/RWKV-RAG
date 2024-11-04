@@ -5,7 +5,7 @@ import argparse
 
 from src.services import *
 from src.services import public_service_workers
-from configuration import LLMServiceConfig, IndexServiceConfig, TuningServiceConfig
+from configuration import LLMServiceConfig, IndexServiceConfig
 
 
 def start_process(service_cls: AbstractServiceWorker, backend_url: str,config: dict):
@@ -45,8 +45,8 @@ def main(service_name:str = None):
             config_service = LLMServiceConfig(f'etc/{service}_config.yml').config
         elif service == 'index_service':
             config_service = IndexServiceConfig(f'etc/{service}_config.yml').config
-        elif service == 'tuning_service':
-            config_service = TuningServiceConfig(f'etc/{service}_config.yml').config
+        # elif service == 'tuning_service':
+        #     config_service = TuningServiceConfig(f'etc/{service}_config.yml').config
         else:
             continue
         print(f"Starting service {service}")

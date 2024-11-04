@@ -9,4 +9,3 @@ num_workers: 1
 reranker_path: /home/rwkv/RWKV-RAG-models/BAAIbge-reranker-v2-m3
 service_module: llm_service
 spawn_method: spawn
-state_path: /home/rwkv/RWKV-RAG-models/state/qa/rwkv-2.pth
