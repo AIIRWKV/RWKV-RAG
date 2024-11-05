@@ -81,19 +81,16 @@ class IndexServiceConfig(metaclass=SingletonMeta):
         self.validate_index_service_config(self.config)
 
     def validate_index_service_config(self, settings):
-        is_docker = settings.get("docker", True)
-        chroma_path = settings.get("chroma_path", '')
-        if not is_docker and not chroma_path:
-            raise ValueError(f"chroma_path is required for index service")
-        if not is_docker and not os.path.exists(chroma_path):
-            raise NotADirectoryError(f"chroma_path {chroma_path} not found for {self.config_file_path}")
-        chroma_host = settings.get("chroma_host", '')
-        if not chroma_host:
-            raise ValueError(f"chroma_host is required for index service")
+        vectordb_name = settings.get("vectordb_name", '')
+        vectordb_host = settings.get("vectordb_host", '')
+        if not vectordb_name:
+            raise ValueError(f"vectordb_name is required for index service")
+        if not vectordb_host:
+            raise ValueError(f"vectordb_host is required for index service")
 
-        chroma_port = settings.get("chroma_port", '')
-        if not (isinstance(chroma_port, int) or (isinstance(chroma_port, str) and chroma_port.isdigit())):
-            raise ValueError(f"chroma_port is required for index service")
+        vectordb_port = settings.get("vectordb_port", '')
+        if not (isinstance(vectordb_port, int) or (isinstance(vectordb_port, str) and vectordb_port.isdigit())):
+            raise ValueError(f"vectordb_port is required for index service")
 
 # class TuningServiceConfig(metaclass=SingletonMeta):
 #     def __init__(self, config_file):

@@ -3,11 +3,8 @@
 Windows  Linux都支持
 """
 import uuid
-import subprocess
 from abc import ABC
 from datetime import datetime
-
-import psutil
 
 from src.vectordb import RECALL_NUMBER
 from src.vectordb import AbstractVectorDBManager
@@ -26,16 +23,7 @@ class ChromaDBManager(AbstractVectorDBManager, ABC):
             except Exception as e:
                 raise VectorDBError('连接Chroma服务失败')
         return self._client
-    # def run(self):
-    #     for proc in psutil.process_iter(['pid', 'name']):
-    #         if 'chroma' == proc.info['name'].lower() or 'chroma.exe' == proc.info['name'].lower():
-    #             return True
-    #
-    #     print(f"Start chroma db")
-    #     # spawn a process "chroma run --path chroma_path --port chroma_port --host chroma_host"
-    #     command = f"chroma run --path {self.db_path} --port {self.db_port} --host {self.db_host}"
-    #     process = subprocess.Popen(command, shell=True)
-    #     print(f"Started indexing service with command {command}, pid is {process.pid}")
+
 
     def has_collection(self, collection_name: str) -> bool:
         chroma_client = self.client()

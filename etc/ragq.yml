@@ -17,5 +17,5 @@ index:
     protocol: tcp
     port: 7784
 base:
-  knowledge_base_path:  /home/rwkv/RWKV-RAG-Data
-  sqlite_db_path: /home/rwkv/RWKV-RAG-Data/files_services.db
+  knowledge_base_path:
+  sqlite_db_path: 

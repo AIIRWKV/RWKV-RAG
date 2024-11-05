@@ -19,7 +19,6 @@ from configuration import ClientConfig
 project_config = ClientConfig('etc/ragq.yml')
 
 parent_dir = project_config.config.get('base', {}).get('knowledge_base_path')
-print(parent_dir)
 default_knowledge_base_dir = os.path.join(parent_dir, "knowledge_data") # 默认联网知识的存储位置
 if not os.path.exists(default_knowledge_base_dir):
     os.makedirs(default_knowledge_base_dir)

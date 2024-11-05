@@ -40,8 +40,7 @@ class LLMService:
         self.kwargs = kwargs
         self.config = config
 
-
-        strategy = kwargs.get('strategy', 'cuda fp16')
+        strategy = kwargs.get('strategy') or 'cuda fp16'
         self.model = OriginRWKV(base_rwkv, strategy=strategy)
         info = vars(self.model.args)
         print(f'load model from {base_rwkv},result is {info}')
@@ -176,7 +175,7 @@ class LLMService:
             raise ValueError(traceback.format_exc())
 
 
-class ServiceWorker(AbstractServiceWorker):
+class LLMServiceWorker(AbstractServiceWorker):
     def init_with_config(self, config):
         base_model_file = config.get("base_model_path") # 默认使用配置文件的模型
         self.llm_service = LLMService(base_model_file, config, strategy=config.get('strategy'))
@@ -222,5 +221,5 @@ class ServiceWorker(AbstractServiceWorker):
         function_name = f'cmd_{cmd_name}'
         if hasattr(self, function_name) and callable(getattr(self, function_name)):
             return getattr(self, function_name)(cmd)
-        return ServiceWorker.UNSUPPORTED_COMMAND
+        return LLMServiceWorker.UNSUPPORTED_COMMAND
 
