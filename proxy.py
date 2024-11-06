@@ -6,6 +6,7 @@
 """
 import multiprocessing
 import zmq
+from sympy.matrices.expressions.kronecker import validate
 
 from configuration import ClientConfig
 
@@ -20,7 +21,7 @@ def start_proxy(frontend_url, backend_url):
 
 
 def start_service_proxy():
-    project_config = ClientConfig('etc/ragq.yml')
+    project_config = ClientConfig('etc/proxy_service_config.yml', validate=False)
     config = project_config.config
     for service_name, service_config in config.items():
         if 'front_end' in service_config and 'back_end' in service_config:

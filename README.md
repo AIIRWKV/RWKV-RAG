@@ -11,6 +11,12 @@
 - 🔎 [系统架构](#-系统架构)
 - 🎬 [开始使用](#-开始使用)
   - 🚀 [启动模型服务](#-启动模型服务)
+  - 🚀 [启动数据索引及检索服务](#-启动数据索引及检索服务)
+  - 🚀 [启动代理服务](#-启动代理服务)
+  - 🚀 [启动客户端服务](#-启动客户端服务)
+- 📚 [文档](#-文档)
+- 🌹 [致谢](#-致谢)
+- 🙌 [贡献](#-贡献)
 </details>
 
 
@@ -27,10 +33,11 @@ RWKV-RAG 使用的模型针对中文数据集进行调优，因此在中文任�
 - 基于消息队列的异步分布式架构。子系统解耦合，可以独立部署。
 - 支持单机部署和集群部署，适用于任何规模的企业。
 
-    > [!TIP]
+    >  [!TIP]
     > 
-    > RWKV-RAG也推出了[个人版](https://github.com/AIIRWKV/RWKV-RAG-Personal)，适合个人用户使用。
-    > 
+    >  RWKV-RAG也推出了[个人版](https://github.com/AIIRWKV/RWKV-RAG-Personal)，适合个人用户使用。
+    >
+
   
 ### 🍔 **支持多种数据源**
 
@@ -105,22 +112,19 @@ end note
 
 ## 🎬 开始使用
 
-### 📝 先决条件
-
 RWKV-RAG是基于 Docker部署的，因此需要先安装 Docker。如果您尚未在本地计算机上安装 Docker，请参阅[安装 Docker Engine](https://docs.docker.com/engine/install/)。
 
 ### 🚀 启动模型服务
 
-<br>
 
-#### 🔧 构建包含模型的 Docker 镜像
+#### 📝 前提条件
 
-该镜像构建完后大小约为20GB。由于模型服务需要加载本地模型，对硬件配置有一定的要求。
+该服务镜像构建完后大小约为20GB。由于模型服务需要加载本地模型，需要提前安装[**NVIDIA驱动程序**](https://www.nvidia.cn/drivers/lookup/)和[**CUDA12.1+**](https://developer.nvidia.com/cuda-downloads)，同时对硬件配置有一定的要求。
 - CPU >= 4 cores
 - RAM >= 16GB 
     > 使用的模型文件越大，需要的内存也会越大。
 - Disk >= 50GB
-- GPU >= 1
+- NVIDIA GPU >= 1
   > 显卡内存要求与模型大小有关。各参数 RWKV模型需要的现存要求如下：
   > 
   > | SIZE       | VRAM 
@@ -132,7 +136,7 @@ RWKV-RAG是基于 Docker部署的，因此需要先安装 Docker。如果您尚�
   >  | RWKV-6-14B |30G|
   >
 
-##### 1. 安装 NVIDIA Container Toolkit
+####  1. 🔨安装 NVIDIA Container Toolkit
 
 在Docker容器中使用CUDA，需要先安装NVIDIA Container Toolkit。如果你还没有安装 NVIDIA Container Toolkit，你可以按照以下步骤进行安装：
 ```shell
@@ -147,7 +151,7 @@ sudo apt-get install -y nvidia-docker2
 sudo systemctl restart docker
 ```
 
-##### 2. 构建镜像
+#### 2. 🏢构建镜像
 
 ```bash
 git clone https://github.com/AIIRWKV/RWKV-RAG.git
@@ -160,7 +164,7 @@ sudo docker build -f DockerfileLLMService -t rwkv_rag/rwkv_rag_llm_service:lates
 > 构建时间会有一些长，后续会将镜像上传到docker hub，方便直接拉取。
 > 
 
-##### 3. 下载模型文件
+#### 3.  ⬇下载模型文件
 
 请将以下模型下载到工作区：
 
@@ -172,11 +176,11 @@ sudo docker build -f DockerfileLLMService -t rwkv_rag/rwkv_rag_llm_service:lates
 > 
 > 建议模型文件放在宿主机同一个文件夹，我们是通过挂载的方式将宿主机存放模型的目录挂载到容器的```/root/models```目录下，便于管理，如下图示例所示。
 > 
-> <img src="./docs/models_example.png" alt="description" style="width: 50%; height: auto;"/>
+> <img src="./docs/img/models_example.png" alt="description" style="width: 50%; height: auto;"/>
 
 
-##### 4. 修改配置文件
-修改项目```etc/llm_service_config.yml```文件，主要三配置LLM模型、嵌入模型、rerank模型路径以及后端服务。
+#### 4. 🔧 修改配置文件
+修改项目```etc/llm_service_config.yml```文件，主要是配置LLM模型、嵌入模型、rerank模型路径以及后端服务。
 
 - **base_model_path**: RWKV 基底模型的路径，请参考 [RWKV 模型下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B) 
 - **embedding_path**: 嵌入模型的路径，推荐使用: bge-m31
@@ -191,9 +195,105 @@ sudo docker build -f DockerfileLLMService -t rwkv_rag/rwkv_rag_llm_service:lates
 > 在前文提到过宿主机存放模型的目录挂载到容器的```/root/models```目录下，所以在修改模型路径时，不要修改路径的```/root/models```前缀。
 > 
 
-#### 5. 启动容器
-假设将模型文件都下载到了宿主机的```/home/rwkv/models```目录下，配置文件路径```/home/rwkv/RWKV-RAG/etc/llm_service_config.yml```，通过挂载模型和配置文件启动容器，命令如下：
+#### 5. 🚀启动容器
+假设将模型文件都下载到了宿主机的```/home/rwkv/models```目录下，配置文件路径```/home/rwkv/RWKV-RAG/etc/llm_service_config.yml```，启动容器，命令如下：
 
 ```bash
 sudo docker run -it --gpus all --name rwkv_rag_llm_service  -p 7782:7782  -v /home/rwkv/models:/root/models  -v /home/rwkv/RWKV-RAG/etc/llm_service_config.yml:/root/RWKV-RAG/etc/llm_service_config.yml rwkv_rag/rwkv_rag_llm_service:latest
 ```
+
+<br>
+
+### 🚀 启动数据索引及检索服务
+
+<br>
+
+#### 1. 🌱向量数据库 Docker部署
+
+RWKV-RAG 默认使用的是ChromaDB向量数据库，后续将会集成一些其它的向量数据库。
+
+> [!TIP]
+> 
+> 也可以根据需要集成一些感兴趣的向量数据库，只需要在项目的```src/vectordb/```目录下实现抽象类``` AbstractVectorDBManager```对应的接口即可。
+>
+
+```bash
+sudo docker pull chromadb/chroma
+sudo docker run --name chromadb_service -p 9998:8000 -v /home/rwkv/Data/chroma:/chroma/chroma -e IS_PERSISTENT=TRUE -e ANONYMIZED_TELEMETRY=TRUE chromadb/chroma:latest
+```
+- chromadb/chroma镜像暴露的端口是8000，用9998(可自行修改)端口做映射，这样可以通过宿主机的9999端口访问chromadb服务。如果能正常访问，说明部署成功。
+- -v /home/rwkv/Data/chroma:/chroma/chroma 是将宿主机的/home/rwkv/Data/chroma目录挂载到chromadb的/chroma/chroma目录下，当容器删除时，数据不会丢失。这个需要根据你的服务器实际情况自行修改。
+
+
+#### 2. 🏢构建镜像
+
+该服务镜像构建完后大小约为1.5GB。
+```bash
+git clone https://github.com/AIIRWKV/RWKV-RAG.git # 如果之前已经clone，则跳过这一步
+cd RWKV-RAG/docker
+sudo docker build -f DockerfileIndexService -t rwkv_rag/rwkv_rag_index_service:latest .
+```
+
+#### 3. 🔧 修改配置文件
+修改项目```etc/index_service_config.yml```文件，主要是向量数据库的服务地址以和后端服务。
+
+- **vectordb_type**: 向量数据库类型，默认为chroma。
+- **vectordb_host**: 向量数据库服务地址。
+- **vectordb_port**: 9998，向量数据库服务端口
+- **back_end**: 数据索引及检索服务的后端服务配置，通过该配置对外提供服务。推荐使用默认值。
+  - **host**: 0.0.0.0
+  - **port**: 7784
+  - **protocol**: tcp
+
+
+#### 4. 🚀启动容器
+假设宿主机配置文件路径```/home/rwkv/RWKV-RAG/etc/llm_service_config.yml```，启动容器，命令如下：
+
+```bash
+sudo docker run -it --gpus all --name rwkv_rag_index_service  -p 7784:7784  -v /home/rwkv/RWKV-RAG/etc/index_service_config.yml:/root/RWKV-RAG/etc/index_service_config.yml rwkv_rag/rwkv_rag_index_service:latest
+```
+
+
+
+
+
+<br>
+
+### 🚀 启动代理服务
+
+RWKV-RAG 是基于```ZeroMQ```的异步分布式架构，采用了```ZeroMQ```的代理模式来实现各个服务之间的通信。如果你对该部分技术细节不是很了解，建议查看相关文档。
+
+#### 1. 🏢构建镜像
+
+该服务镜像构建完后大小约为1GB。
+```bash
+git clone https://github.com/AIIRWKV/RWKV-RAG.git # 如果之前已经clone，则跳过这一步
+cd RWKV-RAG/docker
+sudo docker build -f DockerfileProxyService -t rwkv_rag/rwkv_rag_proxy_service:latest .
+```
+
+#### 2. 🔧 修改配置文件
+修改项目```etc/ragq.yml```文件，主要是配置各个子系统的代理服务地址。
+
+
+
+#### 3. 🚀启动容器
+假设宿主机配置文件路径```/home/rwkv/RWKV-RAG/etc/ragq.yml```，启动容器，命令如下：
+
+```bash
+sudo docker run -it --gpus all --name rwkv_rag_index_service  -p 7784:7784  -v /home/rwkv/RWKV-RAG/etc/index_service_config.yml:/root/RWKV-RAG/etc/index_service_config.yml rwkv_rag/rwkv_rag_index_service:latest
+```
+
+## 📚 文档
+- [使用指南](docs/User_guide.md)
+
+
+## 🌹致谢
+- 所有 RWKV 微调服务改编自 [@J.L ](https://github.com/JL-er)的 [RWKV-PEFT](https://github.com/JL-er/RWKV-PEFT) 项目
+- 所有 RWKV 模型来自 [@BlinkDL](https://github.com/BlinkDL) 的 [RWKV-LM ](https://github.com/BlinkDL/RWKV-LM)项目
+- 项目作者：[YYnil](https://github.com/yynil) ; [Ojiyum](https://github.com/Ojiyumm) ;  [LonghuaLiu](https://github.com/Liu3420175)
+
+
+## 🙌 贡献
+
+RWKV-RAG 因其开放的协作环境而不断进步和成长。我们鼓励并欢迎社区的每一位成员积极参与贡献。如果您有兴趣加入我们的行列，请先阅读我们的[贡献指南](docs/CONTRIBUTING.md) 。

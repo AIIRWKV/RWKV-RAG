@@ -3,19 +3,11 @@ llm:
     host: localhost
     protocol: tcp
     port: 7781
-  back_end:
-    host: localhost
-    protocol: tcp
-    port: 7782
 index:
   front_end:
     host: localhost
     protocol: tcp
     port: 7783
-  back_end:
-    host: localhost
-    protocol: tcp
-    port: 7784
 base:
   knowledge_base_path:
   sqlite_db_path: 

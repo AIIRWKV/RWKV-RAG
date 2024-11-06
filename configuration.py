@@ -105,7 +105,7 @@ class IndexServiceConfig(metaclass=SingletonMeta):
 
 
 class ClientConfig(metaclass=SingletonMeta):
-    def __init__(self, config_file):
+    def __init__(self, config_file, validate=True):
         if not os.path.exists(config_file):
             raise FileNotFoundError(f"Config file {config_file} not found")
         with open(config_file) as f:
@@ -113,8 +113,8 @@ class ClientConfig(metaclass=SingletonMeta):
                 self.config = yaml.safe_load(f)
             except yaml.YAMLError as exc:
                 raise ValueError(f"Invalid config file {config_file}")
-
-        self.validate()
+        if validate:
+            self.validate()
 
     def validate(self):
         """
