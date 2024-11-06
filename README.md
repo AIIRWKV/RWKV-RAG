@@ -27,9 +27,10 @@ RWKV-RAG 使用的模型针对中文数据集进行调优，因此在中文任�
 - 基于消息队列的异步分布式架构。子系统解耦合，可以独立部署。
 - 支持单机部署和集群部署，适用于任何规模的企业。
 
-    > [!TIP]  
+    > [!TIP]
     > 
-    > RWKV-RAG也推出了[个人版](https://github.com/AIIRWKV/RWKV-RAG-Personal)，适合个人用户使用。 
+    > RWKV-RAG也推出了[个人版](https://github.com/AIIRWKV/RWKV-RAG-Personal)，适合个人用户使用。
+    > 
   
 ### 🍔 **支持多种数据源**
 
@@ -158,3 +159,41 @@ sudo docker build -f DockerfileLLMService -t rwkv_rag/rwkv_rag_llm_service:lates
 > 
 > 构建时间会有一些长，后续会将镜像上传到docker hub，方便直接拉取。
 > 
+
+##### 3. 下载模型文件
+
+请将以下模型下载到工作区：
+
+- 下载 RWKV base model（基底模型）：[HuggingFace下载地址](https://huggingface.co/SupYumm/rwkv6_rag_qabot/tree/main)
+- 下载 BGEM3 重排序模型（rerank model）：[HuggingFace下载地址](https://huggingface.co/BAAI/bge-reranker-v2-m3)  [modelscope下载地址](https://modelscope.cn/models/BAAI/bge-reranker-v2-m3)
+- 下载 BGEM3 Embedding 模型: [[HuggingFace下载地址](https://huggingface.co/BAAI/bge-m3)   [modelscope下载地址](https://modelscope.cn/models/BAAI/bge-m3)
+
+> [!TIP]  
+> 
+> 建议模型文件放在宿主机同一个文件夹，我们是通过挂载的方式将宿主机存放模型的目录挂载到容器的```/root/models```目录下，便于管理，如下图示例所示。
+> 
+> <img src="./docs/models_example.png" alt="description" style="width: 50%; height: auto;"/>
+
+
+##### 4. 修改配置文件
+修改项目```etc/llm_service_config.yml```文件，主要三配置LLM模型、嵌入模型、rerank模型路径以及后端服务。
+
+- **base_model_path**: RWKV 基底模型的路径，请参考 [RWKV 模型下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B) 
+- **embedding_path**: 嵌入模型的路径，推荐使用: bge-m31
+- **reranker_path**: 重排序模型的路径，推荐使用: BAAIbge-reranker-v2-m3
+- **back_end**: LLM后端服务配置，通过该配置对外提供服务。推荐使用默认值。
+  - **host**: 0.0.0.0
+  - **port**: 7782
+  - **protocol**: tcp
+
+> [!WARNING]
+> 
+> 在前文提到过宿主机存放模型的目录挂载到容器的```/root/models```目录下，所以在修改模型路径时，不要修改路径的```/root/models```前缀。
+> 
+
+#### 5. 启动容器
+假设将模型文件都下载到了宿主机的```/home/rwkv/models```目录下，配置文件路径```/home/rwkv/RWKV-RAG/etc/llm_service_config.yml```，通过挂载模型和配置文件启动容器，命令如下：
+
+```bash
+sudo docker run -it --gpus all --name rwkv_rag_llm_service  -p 7782:7782  -v /home/rwkv/models:/root/models  -v /home/rwkv/RWKV-RAG/etc/llm_service_config.yml:/root/RWKV-RAG/etc/llm_service_config.yml rwkv_rag/rwkv_rag_llm_service:latest
+```

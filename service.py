@@ -24,12 +24,7 @@ def start_service(service_cls :"AbstractServiceWorker", config:dict):
     host = back_end.get("host","0.0.0.0")
     port = back_end.get("port", '')
     backend_url = f"{protocol}://{host}:{port}"
-    num_workers = config.get("num_workers",1) or 1
-    spawn_method = config.get("spawn_method","fork")
-    multiprocessing.set_start_method(spawn_method, force=True)
-    print(f'\033[91mStarting {num_workers} workers\033[0m')
-    for i in range(num_workers):
-       multiprocessing.Process(target=start_process, args=(service_cls,backend_url,config)).start()
+    start_process(service_cls, backend_url, config)
     print(f"\033[91mService {name} started\033[0m")
 
 

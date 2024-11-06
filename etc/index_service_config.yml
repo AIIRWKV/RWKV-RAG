@@ -5,4 +5,3 @@ back_end:
 vectordb_host:
 vectordb_name: chromadb
 vectordb_port: 9998
-num_workers: 2

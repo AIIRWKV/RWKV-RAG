@@ -2,8 +2,6 @@ back_end:
   host: 0.0.0.0
   port: 7782
   protocol: tcp
-base_model_path:
-embedding_path:
-num_workers: 1
-reranker_path:
-spawn_method: spawn
+base_model_path: /root/models/RWKV-x060-World-7B-v2.1-20240507-ctx4096.pth
+embedding_path: /root/models/bge-m31
+reranker_path: /root/models/BAAIbge-reranker-v2-m3
