@@ -14,7 +14,6 @@ class IndexServiceWorker(AbstractServiceWorker):
             self.vectordb_name = "chromadb"
         self.vectordb_port = config.get("vectordb_port")
         self.vectordb_host = config.get("vectordb_host", )
-        self.vectordb_path = config.get("vectordb_path")
         self.vectordb_manager = None  # 管理器
         self.init_once()
         self.init_vectordb_db()
@@ -36,7 +35,7 @@ class IndexServiceWorker(AbstractServiceWorker):
     def init_once(self):
         if self.vectordb_name == 'chromadb':
             from src.vectordb import ChromaDBManager
-            self.vectordb_manager = ChromaDBManager(self.vectordb_path, self.vectordb_port)
+            self.vectordb_manager = ChromaDBManager(self.vectordb_port, self.vectordb_host)
         else:
             raise VectorDBError(f'暂时不支持向量数据库类型:{self.vectordb_name}')
 

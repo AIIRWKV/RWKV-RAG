@@ -237,7 +237,7 @@ sudo docker build -f DockerfileIndexService -t rwkv_rag/rwkv_rag_index_service:l
 #### 3. 🔧 修改配置文件
 修改项目```etc/index_service_config.yml```文件，主要是向量数据库的服务地址以和后端服务。
 
-- **vectordb_type**: 向量数据库类型，默认为chroma。
+- **vectordb_name**: 向量数据库类型，默认为chroma。
 - **vectordb_host**: 向量数据库服务地址。
 - **vectordb_port**: 9998，向量数据库服务端口
 - **back_end**: 数据索引及检索服务的后端服务配置，通过该配置对外提供服务。推荐使用默认值。
@@ -250,7 +250,7 @@ sudo docker build -f DockerfileIndexService -t rwkv_rag/rwkv_rag_index_service:l
 假设宿主机配置文件路径```/home/rwkv/RWKV-RAG/etc/llm_service_config.yml```，启动容器，命令如下：
 
 ```bash
-sudo docker run -it --gpus all --name rwkv_rag_index_service  -p 7784:7784  -v /home/rwkv/RWKV-RAG/etc/index_service_config.yml:/root/RWKV-RAG/etc/index_service_config.yml rwkv_rag/rwkv_rag_index_service:latest
+sudo docker run -it --name rwkv_rag_index_service  -p 7784:7784  -v /home/rwkv/RWKV-RAG/etc/index_service_config.yml:/root/RWKV-RAG/etc/index_service_config.yml rwkv_rag/rwkv_rag_index_service:latest
 ```
 
 

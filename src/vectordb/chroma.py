@@ -3,7 +3,6 @@
 Windows  Linux都支持
 """
 import uuid
-from abc import ABC
 from datetime import datetime
 
 from src.vectordb import RECALL_NUMBER
@@ -11,11 +10,12 @@ from src.vectordb import AbstractVectorDBManager
 from .errors import VectorDBCollectionNotExistError, VectorDBError
 
 
-class ChromaDBManager(AbstractVectorDBManager, ABC):
+class ChromaDBManager(AbstractVectorDBManager):
 
     def client(self):
         import chromadb
         if self._client is None:
+            print(self.db_host)
             try:
                 self._client = chromadb.HttpClient(host=self.db_host,
                                             port=self.db_port)
