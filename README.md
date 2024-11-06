@@ -238,7 +238,7 @@ sudo docker build -f DockerfileIndexService -t rwkv_rag/rwkv_rag_index_service:l
 修改项目```etc/index_service_config.yml```文件，主要是向量数据库的服务地址以和后端服务。
 
 - **vectordb_name**: 向量数据库类型，默认为chroma。
-- **vectordb_host**: 向量数据库服务地址。
+- **vectordb_host**: 向量数据库服务地址，**不能**是```localhost```或者**回环地址**，应该是部署向量数据库的**服务器IP地址**。
 - **vectordb_port**: 9998，向量数据库服务端口
 - **back_end**: 数据索引及检索服务的后端服务配置，通过该配置对外提供服务。推荐使用默认值。
   - **host**: 0.0.0.0
@@ -291,7 +291,6 @@ sudo docker run -it --gpus all --name rwkv_rag_index_service  -p 7784:7784  -v /
 ## 🌹致谢
 - 所有 RWKV 微调服务改编自 [@J.L ](https://github.com/JL-er)的 [RWKV-PEFT](https://github.com/JL-er/RWKV-PEFT) 项目
 - 所有 RWKV 模型来自 [@BlinkDL](https://github.com/BlinkDL) 的 [RWKV-LM ](https://github.com/BlinkDL/RWKV-LM)项目
-- 项目作者：[YYnil](https://github.com/yynil) ; [Ojiyum](https://github.com/Ojiyumm) ;  [LonghuaLiu](https://github.com/Liu3420175)
 
 
 ## 🙌 贡献
