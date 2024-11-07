@@ -10,9 +10,9 @@
 - 🌟 [主要特性](#-主要特性)
 - 🔎 [系统架构](#-系统架构)
 - 🎬 [开始使用](#-开始使用)
+  - 🚀 [启动消息队列服务](#-启动消息队列服务)
   - 🚀 [启动模型服务](#-启动模型服务)
   - 🚀 [启动数据索引及检索服务](#-启动数据索引及检索服务)
-  - 🚀 [启动代理服务](#-启动代理服务)
   - 🚀 [启动客户端服务](#-启动客户端服务)
 - 📚 [文档](#-文档)
 - 🌹 [致谢](#-致谢)
@@ -26,6 +26,7 @@ RWKV-RAG 是基于 [RWKV](https://www.rwkv.cn/) 模型的开源的RAG系统。�
 
 RWKV-RAG 使用的模型针对中文数据集进行调优，因此在中文任务上表现更佳。我们也在开发英文调优的模型，敬请期待。 
 
+----
 
 ## 🌟 主要特性
 ### 🍭 **异步分布式架构**
@@ -33,10 +34,10 @@ RWKV-RAG 使用的模型针对中文数据集进行调优，因此在中文任�
 - 基于消息队列的异步分布式架构。子系统解耦合，可以独立部署。
 - 支持单机部署和集群部署，适用于任何规模的企业。
 
-    >  [!TIP]
-    > 
-    >  RWKV-RAG也推出了[个人版](https://github.com/AIIRWKV/RWKV-RAG-Personal)，适合个人用户使用。
-    >
+>  [!TIP]
+> 
+>  RWKV-RAG也推出了[个人版](https://github.com/AIIRWKV/RWKV-RAG-Personal)，适合个人用户使用。
+>
 
   
 ### 🍔 **支持多种数据源**
@@ -114,6 +115,50 @@ end note
 
 RWKV-RAG是基于 Docker部署的，因此需要先安装 Docker。如果您尚未在本地计算机上安装 Docker，请参阅[安装 Docker Engine](https://docs.docker.com/engine/install/)。
 
+### 🚀 启动消息队列服务
+
+RWKV-RAG 是基于```ZeroMQ```的异步分布式架构，采用了```ZeroMQ```的代理模式来实现各个子系统之间的通信。如果你对该部分技术细节不是很了解，建议查看相关文档。
+
+在启动其它服务之前，先要启动消息队列服务，同时代理模式需要配置前端套接字和后端套接字，它的作用类似于前端套接字负责接收用户请求，后端套接字负责将请求转发给子系统并返回处理结果。
+
+#### 1. 🏢构建镜像
+
+该服务镜像构建完后大小约为1GB。
+```bash
+git clone https://github.com/AIIRWKV/RWKV-RAG.git # 如果之前已经clone，则跳过这一步
+cd RWKV-RAG/docker
+sudo docker build -f DockerfileProxyService -t rwkv_rag/rwkv_rag_proxy_service:latest .
+```
+
+#### 2. 🔧 修改配置文件
+修改项目```etc/proxy_service_config.yml```文件，主要是配置各个子系统的代理相关参数。
+
+配置示例如下：
+```yaml
+llm:  # 模型服务代理配置
+  front_end:  # 前端套接字配置，
+    host: 0.0.0.0  # 消息队列服务器地址，默认是0.0.0.0，这样可通过宿主机IP地址访问
+    protocol: tcp
+    port: 7781
+  back_end:  # 后端套接字配置
+    host: 0.0.0.0op # 消息队列服务器地址，默认是0.0.0.0，这样可通过宿主机IP地址访问
+    protocol: tcp
+    port: 7782   
+```
+这样客户端可以通过消息队列服务器的7781端口发布消息，子系统后端通过消息队列服务器7782端口接收消息。其它子系统的代理配置类似。
+
+#### 3. 🚀启动容器
+假设宿主机配置文件路径```/home/rwkv/RWKV-RAG/etc/proxy_service_config.yml```，通过挂载方式，避免进入容器修改配置文件。启动容器，命令如下：
+
+```bash
+sudo docker run -it --name rwkv_rag_proxy_service  -p 7781:7781 -p 7782:7782 -p 7783:7783 -p 7784:7784  -v /home/rwkv/RWKV-RAG/etc/proxy_service_config.yml:/root/RWKV-RAG/etc/proxy_service_config.yml rwkv_rag/rwkv_rag_proxy_service:latest
+```
+
+> [!WARNING]
+> 
+> ```etc/proxy_service_config.yml```中配置的端口都需要映射到宿主机，否则无法访问。
+
+---
 ### 🚀 启动模型服务
 
 
@@ -185,8 +230,8 @@ sudo docker build -f DockerfileLLMService -t rwkv_rag/rwkv_rag_llm_service:lates
 - **base_model_path**: RWKV 基底模型的路径，请参考 [RWKV 模型下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B) 
 - **embedding_path**: 嵌入模型的路径，推荐使用: bge-m31
 - **reranker_path**: 重排序模型的路径，推荐使用: BAAIbge-reranker-v2-m3
-- **back_end**: LLM后端服务配置，通过该配置对外提供服务。推荐使用默认值。
-  - **host**: 0.0.0.0
+- **back_end**: 消息队列服务模型服务相关的代理模式配置中的后端套接字配置
+  - **host**: 消息队列服务器IP地址
   - **port**: 7782
   - **protocol**: tcp
 
@@ -199,7 +244,7 @@ sudo docker build -f DockerfileLLMService -t rwkv_rag/rwkv_rag_llm_service:lates
 假设将模型文件都下载到了宿主机的```/home/rwkv/models```目录下，配置文件路径```/home/rwkv/RWKV-RAG/etc/llm_service_config.yml```，启动容器，命令如下：
 
 ```bash
-sudo docker run -it --gpus all --name rwkv_rag_llm_service  -p 7782:7782  -v /home/rwkv/models:/root/models  -v /home/rwkv/RWKV-RAG/etc/llm_service_config.yml:/root/RWKV-RAG/etc/llm_service_config.yml rwkv_rag/rwkv_rag_llm_service:latest
+sudo docker run -it --gpus all --name rwkv_rag_llm_service  -v /home/rwkv/models:/root/models  -v /home/rwkv/RWKV-RAG/etc/llm_service_config.yml:/root/RWKV-RAG/etc/llm_service_config.yml rwkv_rag/rwkv_rag_llm_service:latest
 ```
 
 <br>
@@ -240,49 +285,63 @@ sudo docker build -f DockerfileIndexService -t rwkv_rag/rwkv_rag_index_service:l
 - **vectordb_name**: 向量数据库类型，默认为chroma。
 - **vectordb_host**: 向量数据库服务地址，**不能**是```localhost```或者**回环地址**，应该是部署向量数据库的**服务器IP地址**。
 - **vectordb_port**: 9998，向量数据库服务端口
-- **back_end**: 数据索引及检索服务的后端服务配置，通过该配置对外提供服务。推荐使用默认值。
-  - **host**: 0.0.0.0
+- **back_end**: 消息队列服务数据检索服务相关的代理模式配置中的后端套接字配置
+  - **host**: 消息队列服务器IP地址
   - **port**: 7784
   - **protocol**: tcp
 
 
 #### 4. 🚀启动容器
-假设宿主机配置文件路径```/home/rwkv/RWKV-RAG/etc/llm_service_config.yml```，启动容器，命令如下：
+假设宿主机配置文件路径```/home/rwkv/RWKV-RAG/etc/index_service_config.yml```，启动容器，命令如下：
 
 ```bash
-sudo docker run -it --name rwkv_rag_index_service  -p 7784:7784  -v /home/rwkv/RWKV-RAG/etc/index_service_config.yml:/root/RWKV-RAG/etc/index_service_config.yml rwkv_rag/rwkv_rag_index_service:latest
+sudo docker run -it --name rwkv_rag_index_service -v /home/rwkv/RWKV-RAG/etc/index_service_config.yml:/root/RWKV-RAG/etc/index_service_config.yml rwkv_rag/rwkv_rag_index_service:latest
 ```
-
 
 
 
 
 <br>
 
-### 🚀 启动代理服务
+### 🚀 启动客户端服务
 
-RWKV-RAG 是基于```ZeroMQ```的异步分布式架构，采用了```ZeroMQ```的代理模式来实现各个服务之间的通信。如果你对该部分技术细节不是很了解，建议查看相关文档。
-
+客户端是基于```streamlit```实现的一个简洁的交互式Web系统，同时也包含一些数据处理类的功能，后续会进行前后端分离，使用更丰富的交互方式，敬请期待！
 #### 1. 🏢构建镜像
 
-该服务镜像构建完后大小约为1GB。
+该服务镜像构建完后大小约为3.5GB。
 ```bash
 git clone https://github.com/AIIRWKV/RWKV-RAG.git # 如果之前已经clone，则跳过这一步
 cd RWKV-RAG/docker
-sudo docker build -f DockerfileProxyService -t rwkv_rag/rwkv_rag_proxy_service:latest .
+sudo docker build -f DockerfileClient -t rwkv_rag/rwkv_rag_client:latest .
 ```
 
 #### 2. 🔧 修改配置文件
-修改项目```etc/ragq.yml```文件，主要是配置各个子系统的代理服务地址。
+修改项目```etc/ragq.yml```文件，主要是配置各个子系统的前端套接字配置。
 
-
+配置示例如下：
+```yaml
+llm:  # 模型服务的配置
+  front_end:  # 前端套接字配置
+    host: 消息队列服务器IP地址
+    protocol: tcp
+    port: 7781
+index: # 数据检索服务的配置
+  front_end: # 前端套接字配置
+    host: # 消息队列服务器IP地址
+    protocol: tcp
+    port: 7783
+base:  # 基础配置
+  knowledge_base_path:  # 知识库原始文件存储路径，确保路径存在
+  sqlite_db_path: #后端数据库SQLite数据库文件路径，确保路径存在
+```
 
 #### 3. 🚀启动容器
 假设宿主机配置文件路径```/home/rwkv/RWKV-RAG/etc/ragq.yml```，启动容器，命令如下：
 
 ```bash
-sudo docker run -it --gpus all --name rwkv_rag_index_service  -p 7784:7784  -v /home/rwkv/RWKV-RAG/etc/index_service_config.yml:/root/RWKV-RAG/etc/index_service_config.yml rwkv_rag/rwkv_rag_index_service:latest
+sudo docker run -it --name rwkv_rag_client -p 8501:8501 -v /home/rwkv/RWKV-RAG/etc/ragq.yml:/root/RWKV-RAG/etc/ragq.yml rwkv_rag/rwkv_rag_client:latest
 ```
+
 
 ## 📚 文档
 - [使用指南](docs/User_guide.md)

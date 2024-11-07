@@ -1,0 +1,29 @@
+FROM python:3.10
+LABEL maintainer=RWKV-RAG-Proxy-Service
+
+WORKDIR /root
+
+# 初始化环境
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
+
+RUN apt-get update -y && \
+    apt-get install -y git && \
+    apt-get install -y --no-install-recommends libglib2.0-0 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+RUN pip install --upgrade pip setuptools
+RUN pip install --index-url https://pypi.python.org/simple/ pipx && \
+    pipx install poetry --force
+RUN pip install pyzmq==26.0.3
+RUN pip install PyYAML==6.0.1
+
+# 下载代码
+# RUN git clone https://github.com/AIIRWKV/RWKV-RAG.git
+RUN git clone -b v0.1.4 http://github.com/AIIRWKV/RWKV-RAG.git
+
+# 安装 Python 依赖
+WORKDIR /root/RWKV-RAG
+
+# 启动应用程序
+ENTRYPOINT ["python3.10", "proxy.py"]

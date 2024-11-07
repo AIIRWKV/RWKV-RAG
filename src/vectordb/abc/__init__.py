@@ -28,14 +28,6 @@ class AbstractVectorDBManager(ABC):
         """
         pass
 
-    # @abstractmethod
-    # def run(self):
-    #     """
-    #     start process
-    #     :return:
-    #     """
-    #     pass
-
     @abstractmethod
     def show_collections(self, page: int=None, page_size: int=None):
         """

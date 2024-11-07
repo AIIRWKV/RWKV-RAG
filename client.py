@@ -283,8 +283,7 @@ def rag_chain(index_client: IndexClient, llm_client: LLMClient):
 
     if recall_button and query_input:
         embeddings = llm_client.encode([query_input]).get('value')
-        search_results = index_client.search_nearby(embeddings, collection_name=st.session_state.kb_name).get('value')
-        documents = search_results["documents"][0]
+        documents = index_client.search_nearby(embeddings, collection_name=st.session_state.kb_name).get('value')
         st.write(documents)
         cross_scores = llm_client.cross_encode([query_input for i in range(len(documents))], documents)
         st.header("Cross_score")
@@ -344,7 +343,6 @@ def main():
     # TODO 可能需要有更新机制
     llm_service_config = llm_client.llm_config()
     default_base_model_path = llm_service_config.get('base_model_path')
-    default_state_path = llm_service_config.get('state_path')
     file_status_manager = FileStatusManager(project_config.config.get('base', {}).get('sqlite_db_path'),
                                             {'default_base_model_path': default_base_model_path})
 
@@ -372,7 +370,6 @@ def main():
         default_base_model_name = file_status_manager.get_base_model_name_by_path(default_base_model_path) or 'default'
         st.session_state.kb_name = st.selectbox("正在使用的知识库", collection_name_list, )
         st.session_state.base_model_path = st.selectbox('基底RWKV模型', [default_base_model_name])
-        st.session_state.state_file_path = st.selectbox("记忆状态", [default_state_path])
 
     if app_scenario == tabs_title[0]:
         knowledgebase_manager(index_client, file_status_manager)
