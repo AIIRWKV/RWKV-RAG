@@ -4,7 +4,7 @@ llm:
     protocol: tcp
     port: 7781
   back_end:
-    host: localhost
+    host:
     protocol: tcp
     port: 7782
 index:
@@ -13,6 +13,6 @@ index:
     protocol: tcp
     port: 7783
   back_end:
-    host: localhost
+    host:
     protocol: tcp
     port: 7784

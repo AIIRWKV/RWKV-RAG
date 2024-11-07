@@ -6,7 +6,6 @@
 """
 import multiprocessing
 import zmq
-from sympy.matrices.expressions.kronecker import validate
 
 from configuration import ClientConfig
 
