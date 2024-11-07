@@ -1,13 +1,13 @@
 llm:
   front_end:
-    host: localhost
+    host:
     protocol: tcp
     port: 7781
 index:
   front_end:
-    host: localhost
+    host:
     protocol: tcp
     port: 7783
 base:
-  knowledge_base_path:
-  sqlite_db_path: 
+  knowledge_base_path: /root/data
+  sqlite_db_path: /root/data/files_services.db

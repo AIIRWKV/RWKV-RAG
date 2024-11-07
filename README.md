@@ -237,7 +237,7 @@ sudo docker build -f DockerfileLLMService -t rwkv_rag/rwkv_rag_llm_service:lates
 
 > [!WARNING]
 > 
-> 在前文提到过宿主机存放模型的目录挂载到容器的```/root/models```目录下，所以在修改模型路径时，不要修改路径的```/root/models```前缀。
+> 在前文提到过宿主机存放模型的目录挂载到容器的```/root/models```目录下，所以在修改模型路径时，建议不要修改路径的```/root/models```前缀。
 > 
 
 #### 5. 🚀启动容器
@@ -331,15 +331,17 @@ index: # 数据检索服务的配置
     protocol: tcp
     port: 7783
 base:  # 基础配置
-  knowledge_base_path:  # 知识库原始文件存储路径，确保路径存在
-  sqlite_db_path: #后端数据库SQLite数据库文件路径，确保路径存在
+  knowledge_base_path: /root/data # 知识库原始文件存储路径，推荐使用默认值
+  sqlite_db_path: /root/data/files_services.db #后端数据库SQLite数据库文件路径，推荐使用默认值
 ```
 
 #### 3. 🚀启动容器
-假设宿主机配置文件路径```/home/rwkv/RWKV-RAG/etc/ragq.yml```，启动容器，命令如下：
+我们在容器里创建了```/root/data```目录用来存放知识库原始文件及SQLite数据库。为了保证数据持久化，不应为删除容器而丢失数据，采用挂载方式将这些数据持久化到宿主机。
+
+假设宿主机配置文件路径```/home/rwkv/RWKV-RAG/etc/ragq.yml```，知识库等数据存放在宿主机```/home/rwkv/RWKV-RAG-Data```目录下，启动容器，命令如下：
 
 ```bash
-sudo docker run -it --name rwkv_rag_client -p 8501:8501 -v /home/rwkv/RWKV-RAG/etc/ragq.yml:/root/RWKV-RAG/etc/ragq.yml rwkv_rag/rwkv_rag_client:latest
+sudo docker run -it --name rwkv_rag_client -p 8501:8501 -v /home/rwkv/RWKV-RAG-Data:/root/data -v /home/rwkv/RWKV-RAG/etc/ragq.yml:/root/RWKV-RAG/etc/ragq.yml rwkv_rag/rwkv_rag_client:latest
 ```
 
 

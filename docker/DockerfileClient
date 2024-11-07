@@ -3,6 +3,8 @@ LABEL maintainer=RWKV-RAG-Client
 
 WORKDIR /root
 
+RUN mkdir -p /root/data  # 数据存放位置
+
 # 初始化环境
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
