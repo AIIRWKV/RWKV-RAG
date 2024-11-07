@@ -39,36 +39,25 @@ class Loader:
             self._files = [self.file_path]
 
     def load_txt(self, file_path: str, split_type=None, lang=None):
+        """
+        加载txt文件
+        """
         chunk_overlap = self.chunk_overlap
         chunk_size = self.chunk_size
+        batch_size = 4086
         with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-            content = f.read()
-
-        content_length = len(content)
-        start_batch = 0
-        batch_number = 0
-        batch_size = 1000000
-
-        while start_batch < content_length:
-            end_batch = start_batch + batch_size
-            batch_content = content[start_batch:end_batch]
-
-            start = 0
-            chunk_number = 0
-            batch_length = len(batch_content)
-
-            while start < batch_length:
-                end = start + chunk_size
-                current_chunk = batch_content[start:end]
-                current_chunk = current_chunk.replace('\n', '').replace('\r\n', '')
-                yield current_chunk
-
-                # 更新起始位置，考虑重叠
-                start += chunk_size - chunk_overlap
-                chunk_number += 1
-
-            start_batch += batch_size
-            batch_number += 1
+            current_txt = ''
+            while 1:
+                txt = f.read(batch_size)
+                if not txt:
+                    break
+                txt = txt.strip().replace("\r\n", "").replace("\n", "") if self.remove_linefeed else txt.strip()
+                current_txt += txt
+                while len(current_txt) >= self.chunk_size:
+                    yield current_txt[:chunk_size]
+                    current_txt = current_txt[chunk_size - chunk_overlap:]
+            if current_txt:
+                yield current_txt
 
     @staticmethod
     def extract_text_from_image(image_data, language='chi_sim'):

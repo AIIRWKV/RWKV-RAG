@@ -9,8 +9,6 @@ from rwkv.utils import PIPELINE, PIPELINE_ARGS
 
 from src.services import AbstractServiceWorker
 
-# from rwkv_lm_ext.src.model_run import generate_beamsearch
-
 os.environ['RWKV_JIT_ON'] = '1'
 os.environ['RWKV_T_MAX'] = '4096'
 os.environ['RWKV_FLOAT_MODE'] = 'bf16'
