@@ -3,7 +3,6 @@ import asyncio
 import re
 import string
 import random
-from collections import OrderedDict
 
 import streamlit as st
 import pandas as pd
@@ -12,11 +11,14 @@ from src.clients.index_client import IndexClient
 from src.clients.llm_client import LLMClient
 from src.utils.loader import Loader
 from src.utils.internet import search_on_baike
-from src.clients.tuning_client import TuningClient
 from src.clients import FileStatusManager
-from configuration import config as project_config
+from configuration import ClientConfig
 
-parent_dir = project_config.config.get('index', {}).get('knowledge_base_path')
+
+
+project_config = ClientConfig('etc/ragq.yml')
+
+parent_dir = project_config.config.get('base', {}).get('knowledge_base_path')
 default_knowledge_base_dir = os.path.join(parent_dir, "knowledge_data") # 默认联网知识的存储位置
 if not os.path.exists(default_knowledge_base_dir):
     os.makedirs(default_knowledge_base_dir)
@@ -25,13 +27,6 @@ default_upload_knowledge_base_dir = os.path.join(default_knowledge_base_dir, "up
 if not os.path.exists(default_upload_knowledge_base_dir):
     os.makedirs(default_upload_knowledge_base_dir)
 
-default_tuning_path = os.path.join(default_knowledge_base_dir, "tuning_data") # 微调数据存储位置
-if not os.path.exists(default_tuning_path):
-    os.makedirs(default_tuning_path)
-
-default_tuning_model_path = os.path.join(default_knowledge_base_dir, "tuning_model")
-if not os.path.exists(default_tuning_model_path):
-    os.makedirs(default_tuning_model_path)
 
 
 
@@ -39,9 +34,6 @@ async def search_and_notify(search_query, output_dir, output_filename):
     # Run the async search function
     msg = await search_on_baike(search_query, output_dir, output_filename)
     return os.path.join(output_dir, output_filename), msg
-
-    # Run the async function in the event loop
-    return asyncio.run(async_search())
 
 def get_random_string(length):
     haracters = string.ascii_uppercase + string.digits
@@ -132,7 +124,7 @@ def knowledgebase_manager(index_client: IndexClient, file_client: FileStatusMana
             st.warning("该知识库下没有找到任何文件。")
 
 
-def internet_search(index_client: IndexClient, file_client: FileStatusManager):
+def internet_search(index_client: IndexClient, file_client: FileStatusManager, llm_client: LLMClient):
     """
     知识入库
     """
@@ -188,7 +180,9 @@ def internet_search(index_client: IndexClient, file_client: FileStatusManager):
         if payload_input and load_button:
             payload_texts = payload_input.split("\n")
             for idx, chunk in enumerate(payload_texts):
-                result = index_client.index_texts([chunk], collection_name=st.session_state.kb_name)
+                tmp = [chunk]
+                embeddings = llm_client.encode(tmp)["value"]
+                result = index_client.index_texts(tmp, embeddings, collection_name=st.session_state.kb_name)
                 st.write(f"文本 {idx + 1}: {result}")
     elif input_method == "服务端文件":
         st.markdown(
@@ -221,7 +215,9 @@ def internet_search(index_client: IndexClient, file_client: FileStatusManager):
                 chunks= loader.load_and_split_file(output_path)
 
                 for idx,chunk in enumerate(chunks):
-                    index_client.index_texts([chunk], collection_name=st.session_state.kb_name)
+                    tmp = [chunk]
+                    embeddings = llm_client.encode(tmp)["value"]
+                    index_client.index_texts(tmp, embeddings, collection_name=st.session_state.kb_name)
                 st.success(f"文件已加载并分割完成！分割后文件路径:{loader.output_files}")
                 is_success = True
 
@@ -265,7 +261,9 @@ def internet_search(index_client: IndexClient, file_client: FileStatusManager):
                     chunks = loader.load_and_split_file(default_upload_knowledge_base_dir)
 
                     for idx,chunk in enumerate(chunks):
-                        index_client.index_texts([chunk], collection_name=st.session_state.kb_name)
+                        tmp = [chunk]
+                        embeddings = llm_client.encode(tmp)["value"]
+                        index_client.index_texts(tmp, embeddings, collection_name=st.session_state.kb_name)
                     st.success(f"文件已加载并分割完成！分割后文件路径:{loader.output_files}")
                     is_success = True
                 # 记录文件入库状态
@@ -284,8 +282,8 @@ def rag_chain(index_client: IndexClient, llm_client: LLMClient):
     recall_button = st.button("召回")
 
     if recall_button and query_input:
-        search_results = index_client.search_nearby(query_input, collection_name=st.session_state.kb_name).get('value')
-        documents = search_results["documents"][0]
+        embeddings = llm_client.encode([query_input]).get('value')
+        documents = index_client.search_nearby(embeddings, collection_name=st.session_state.kb_name).get('value')
         st.write(documents)
         cross_scores = llm_client.cross_encode([query_input for i in range(len(documents))], documents)
         st.header("Cross_score")
@@ -325,282 +323,28 @@ def rag_chain(index_client: IndexClient, llm_client: LLMClient):
         st.session_state.best_match = f"{st.session_state.best_match},{sampling_results}"
 
 
-def jsonl2binidx_manager(client: TuningClient):
-    """
-    数据转换
-    """
-
-    st.subheader("准备微调数据")
-    epoch = st.number_input("Epoch:", min_value=1, value=3, key='tuning_epoch', max_value=10)
-    context_len = st.number_input("Context Length:", min_value=1, value=1024, key='tuning_context_len', )
-    # 输出路径
-    output_dir = st.text_input("输出文件路径:", default_tuning_path, key="output_dir")
-    # 询问用户输入payload的方式
-    input_method = st.selectbox(
-        "请选择输入数据格式",
-        ["本地上传", "手动输入"],
-        index=0
-    )
-    payload_input = None
-    if input_method == "手动输入":
-        payload_input = st.text_area(
-            "请输入payload内容（每条文本一行，格式参照https://rwkv.cn/RWKV-Fine-Tuning/FT-Dateset)", height=220)
-    else:
-        payload_file = st.file_uploader("请上传文件(:red[格式参照]https://rwkv.cn/RWKV-Fine-Tuning/FT-Dateset)",
-                                        type=["jsonl"], key="payload_input",
-                                        )
-        if payload_file:
-            payload_input = payload_file.read().decode("utf-8", errors='ignore')
-    if st.button("提交") and payload_input:
-        binidx_path = client.jsonl2binidx(payload_input, epoch, output_dir, context_len, is_str=True)
-        st.write(binidx_path)
-        st.markdown('<span style="font-size: 12px; color: blue;">❗ 返回的路径值可作为模型微调训练数据集的路径</span>', unsafe_allow_html=True)
-
-def wandb_manager(client: TuningClient):
-    """
-    wandb 管理
-    """
-    st.subheader('wandb管理')
-    username_dict = client.wandb_info()
-    username = username_dict.get('value', '')
-    username = username or '暂未登录'
-    st.markdown('<span style="font-size: 19x; font-weight: bold;">当前用户</span>', unsafe_allow_html=True)
-    st.markdown(f"{username}" , unsafe_allow_html=True)
-
-    st.markdown('<span style="font-size: 19x; font-weight: bold;">登录</span>', unsafe_allow_html=True)
-    st.markdown(f"输入api key,点击登录即可完成账号登录", unsafe_allow_html=True)
-    api_key = st.text_input("请输入wandb api key:", key="api_key")
-    if st.button("登录") and api_key:
-        resp = client.wandb_login(api_key)
-        if str(resp.get('code')) == '200':
-            st.success(resp.get('value', ''))
-        else:
-            st.warning(resp.get('value', ''))
-    st.markdown('<span style="font-size: 19x; font-weight: bold;">添加项目</span>', unsafe_allow_html=True)
-    project_name = st.text_input("请输入wandb项目名:", key="project_name")
-    if st.button("添加") and project_name:
-        resp = client.wandb_add_project(project_name)
-        if str(resp.get('code')) == '200':
-            st.success(resp.get('value', ''))
-        else:
-            st.warning(resp.get('value', ''))
-
-def tuning_manager(client: TuningClient, app_scenario):
-    """
-    模型微调
-    """
-    st.subheader("模型微调")
-    st.markdown(
-        '<span style="font-size: 16px; color: blue;">❗不同的底座RWKV模型参数不同,具体参照<a href="https://rwkv.cn/RWKV-Fine-Tuning/Full-ft-Simple#%E8%B0%83%E6%95%B4-n_layer-%E5%92%8C-n_embd-%E5%8F%82%E6%95%B0">RWKV微调参数调整 </a></span>',
-        unsafe_allow_html=True)
-
-    tuning_type = st.selectbox("微调算法:", ["state"], index=0)
-    proj_dir = st.text_input("训练日志和训练得到的文件输出路径:", default_tuning_model_path, key="proj_dir")
-    data_file = st.text_input("训练数据集的路径:(:red[路径中不需要带 bin 和 idx 后缀，仅需文件名称])", "", key="data_file")
-    load_model = st.session_state.base_model_path
-    wandb_project = client.wandb_list_project().get('value', []) or []
-    my_wandb = st.selectbox("wandb:", [''] + wandb_project, index=0)
-
-    epoch_count = st.number_input("总训练轮次:", min_value=1, value=3, key="epoch_count")
-    epoch_steps = st.number_input("每个训练轮次的步数:", min_value=1, value=800,
-                                  key="epoch_steps")
-    accelerator = st.selectbox("加速器类型:", ["gpu"], key="accelerator")
-    precision = st.selectbox("训练精度:", ["fp32", "tf32", "fp16", "bf16"], key="precision", index=3)
-    quant = st.selectbox("量化参数:", ['nf4'], key="quant")
-    n_layer = st.number_input("n_layer:", min_value=1, value=24, key="n_layer")
-    n_embd = st.number_input("n_embd:", min_value=1, value=2048, key="n_embd")
-    ctx_len = st.number_input("上下文长度:", min_value=1, value=1024, key="ctx_len")
-    data_type = st.selectbox("训练语料的文件格式:", ['binidx'], key="data_type")
-    epoch_save = st.number_input("保存一次模型所间隔的训练轮次:", min_value=1, value=1, key="epoch_save")
-    vocab_size = st.number_input("词表大小:", min_value=1, value=65536, key="vocab_size")
-    epoch_begin = st.number_input("初始训练轮次:", min_value=0, value=0, key="epoch_begin")
-    pre_ffn = 0
-    head_qk = 0
-    beta1 = st.number_input("Adam优化器的beta1参数:", min_value=0.0, value=0.9, key="beta1")
-    beta2 = st.number_input("Adam优化器的beta2参数:", min_value=0.0, value=0.99, key="beta2")
-    adam_eps = st.number_input("Adam优化器的epsilon 参数:", min_value=0.0, value=1e-8, key="adam_eps", step=1e-8, format="%f")
-    my_testing = st.selectbox("训练的RWKV模型版本:", ["x060"], key="my_testing", index=0)
-    strategy = st.selectbox("lightning训练策略参数:", ["deepspeed_stage_1"], key="strategy")
-    devices = st.number_input("训练时显卡数量:", min_value=1, value=1, key="devices")
-    dataload = "pad"
-    grad_cp = st.selectbox("梯度累积步数:", [0, 1], key="grad_cp", index=1)
-
-    if tuning_type == 'state':
-        micro_bsz = st.number_input("micro_bsz:", min_value=1, value=1, key="micro_bsz")
-        lr_init = st.number_input("初始学习率:", min_value=0.0, value=1.0, key="lr_init")
-        lr_final = st.number_input("最终学习率:", min_value=0.0, value=1e-2, key="lr_final")
-        warmup_steps = st.number_input("预热步骤数:", min_value=0, value=10, key="warmup_steps")
-    elif tuning_type == 'pissa':
-        svd_niter = 4
-        lora_r = st.number_input("LoRA微调rank参数:", min_value=1, value=64, key="lora_r")
-        micro_bsz = st.number_input("micro_bsz:", min_value=1, value=8, key="micro_bsz")
-        lr_init = st.number_input("初始学习率:", min_value=0.0, value=5e-5, key="lr_init", step=1e-5, format="%f")
-        lr_final = st.number_input("最终学习率:", min_value=0.0, value=5e-5, key="lr_final", step=1e-5, format="%f")
-        lora_load = st.text_input("LoRA文件路径:", "rwkv-0", key="lora_load")
-        lora_alpha = st.number_input("Lora_alpha参数:", min_value=1, value=128, key="lora_alpha")
-        lora_dropout = st.number_input("LoRA微调的丢弃率:", min_value=0.0, value=0.01, key="lora_dropout")
-        lora_parts = st.text_input("LoRA微调影响的范围:", "att,ffn,time,ln", key="lora_parts")
-    else:
-        lora_r = st.number_input("LoRA微调rank参数:", min_value=1, value=64, key="lora_r")
-        micro_bsz = st.number_input("micro_bsz:", min_value=1, value=8, key="micro_bsz")
-        lr_init = st.number_input("初始学习率:", min_value=0.0, value=5e-5, key="lr_init")
-        lr_final = st.number_input("最终学习率:", min_value=0.0, value=5e-5, key="lr_final", step=1e-5, format="%f")
-        lora_alpha = st.number_input("Lora_alpha参数:", min_value=1, value=128, key="lora_alpha")
-        warmup_steps = st.number_input("预热步骤数:", min_value=0, value=0, key="warmup_steps")
-        lora_load = st.text_input("LoRA文件路径:", "rwkv-0", key="lora_load", disabled=True)
-        lora_dropout = st.number_input("LoRA微调的丢弃率:", min_value=0.0, value=0.01, key="lora_dropout")
-        lora_parts = st.text_input("LoRA微调影响的范围:", "att,ffn,time,ln", key="lora_parts")
-
-    if st.button("开始"):
-        if not proj_dir or not data_file:
-            st.warning("输出路径和训练数据集的路径不能为空")
-            return
-        if tuning_type == 'state':
-            client.state_tuning_train(
-                load_model=load_model, proj_dir=proj_dir, data_file=data_file, data_type=data_type,
-                vocab_size=vocab_size, ctx_len=ctx_len, epoch_steps=epoch_steps,
-                epoch_count=epoch_count, epoch_begin=epoch_begin, epoch_save=epoch_save,
-                micro_bsz=micro_bsz, n_layer=n_layer, n_embd=n_embd, pre_ffn=pre_ffn,
-                head_qk=head_qk, lr_init=lr_init, lr_final=lr_final, warmup_steps=warmup_steps,
-                beta1=beta1, beta2=beta2, adam_eps=adam_eps,
-                accelerator=accelerator, devices=devices, precision=precision, strategy=strategy,
-                grad_cp=grad_cp, my_testing=my_testing,
-                train_type='state', dataload=dataload, quant=quant, wandb=my_wandb)
-        elif tuning_type == 'pissa':
-            client.pissa_train(load_model=load_model, proj_dir=proj_dir, data_file=data_file,
-                               data_type=data_type,
-                               vocab_size=vocab_size, ctx_len=ctx_len, epoch_steps=epoch_steps,
-                               epoch_count=epoch_count, epoch_begin=epoch_begin, epoch_save=epoch_save,
-                               micro_bsz=micro_bsz, n_layer=n_layer, n_embd=n_embd, pre_ffn=pre_ffn,
-                               head_qk=head_qk, lr_init=lr_init, lr_final=lr_final, warmup_steps=warmup_steps,
-                               beta1=beta1, beta2=beta2, adam_eps=adam_eps, accelerator=accelerator,
-                               devices=devices, precision=precision, strategy=strategy, my_testing=my_testing,
-                               lora_load=lora_load, lora=True, lora_r=lora_r, lora_alpha=lora_alpha,
-                               lora_dropout=lora_dropout, lora_parts=lora_parts, PISSA=True, svd_niter=svd_niter,
-                               grad_cp=grad_cp, dataload=dataload, quant=quant, wandb=my_wandb)
-        else:
-            client.lora_train(load_model=load_model, proj_dir=proj_dir, data_file=data_file, data_type=data_type,
-                              vocab_size=vocab_size, ctx_len=ctx_len, epoch_steps=epoch_steps,
-                              epoch_count=epoch_count, epoch_begin=epoch_begin, epoch_save=epoch_save,
-                              micro_bsz=micro_bsz, n_layer=n_layer, n_embd=n_embd, pre_ffn=pre_ffn,
-                              head_qk=head_qk, lr_init=lr_init, lr_final=lr_final, warmup_steps=warmup_steps,
-                              beta1=beta1, beta2=beta2, adam_eps=adam_eps, accelerator=accelerator, devices=devices,
-                              precision=precision, strategy=strategy, grad_cp=grad_cp, my_testing=my_testing,
-                              lora_load=lora_load, lora=True, lora_r=lora_r, lora_alpha=lora_alpha,
-                              lora_dropout=lora_dropout, lora_parts=lora_parts, wandb=my_wandb)
-
-
-def base_model_manager(file_client: FileStatusManager,llm_client:LLMClient, current_base_model_name):
-    st.title("模型管理")
-    st.subheader("重启基底模型")
-    st.markdown(
-        '<span style="font-size: 16px; color: blue;">❗如果更换了基底模型可能影响到正在执行的任务。 更换后下次重启服务时基底模型就是本次更该后的模型</span>',
-        unsafe_allow_html=True)
-    st.write('当前基底模型: %s (%s)' % (current_base_model_name, project_config.default_base_model_path))
-
-    base_model_list  = file_client.get_base_model_list()
-    active_base_models = OrderedDict()
-    if base_model_list:
-        names = []
-        paths = []
-        statuss = []
-        create_times = []
-        for line in base_model_list:
-            names.append(line[0])
-            paths.append(line[1])
-            if line[2] == 1:
-                active_base_models.setdefault(line[0], line[1])
-                statuss.append('上线')
-            else:
-                statuss.append('下线')
-            create_times.append(line[3])
-    else:
-        names = ['default']
-
-    reload_base_model_name = st.selectbox("请选择要重启的基底模型:", [''] + list(active_base_models.keys()))
-    if st.button("重启") and reload_base_model_name:
-        new_base_model_path = active_base_models[reload_base_model_name]
-        if llm_client:
-            llm_client.reload_base_model(new_base_model_path)
-            st.success('重启成功')
-            project_config.set_llm_service_config(base_model_path=new_base_model_path)
-            file_client.create_or_update_using_base_model(reload_base_model_name)
-        else:
-            st.warning("LLM 服务未开启")
-
-
-    if reload_base_model_name == current_base_model_name:
-        st.warning("需要重启的基底模型与当前基底模型一样。")
-
-
-    st.subheader("基底模型列表")
-    if base_model_list:
-        df = pd.DataFrame({'名称': names, '路径': paths, '状态': statuss, '创建时间': create_times})
-        st.dataframe(df, use_container_width=True)
-    else:
-        names = ['default']
-        st.warning("没有找到基底模型。请先添加基底模型")
-
-    st.subheader("新增基底模型")
-    new_base_model_name = st.text_input("请输入基底模型的名称(唯一):", key='new_base_model_name')
-    new_base_model_path = st.text_input("请输入基底模型的路径:", key='new_base_model_path')
-
-    if st.button('添加'):
-        if new_base_model_name:
-           if not 3 <= len(new_base_model_name) <= 64:
-               st.warning("基底模型的名称长度必须在3到64个字符之间。")
-        else:
-            st.warning("请输入基底模型名称。")
-        if new_base_model_path:
-            if not os.path.exists(new_base_model_path):
-                st.warning("基底模型的路径不存在。")
-        else:
-            st.warning("请输入基底模型路径。")
-
-        code= file_client.add_base_model(new_base_model_name, new_base_model_path)
-        if code == 0:
-            st.warning(f"基底模型{new_base_model_name}已存在")
-        else:
-            st.success("基底模型添加成功。")
-    st.subheader('修改基底模型')
-    change_base_model_name = st.selectbox("请选择基底模型:", [''] + names, key='change_base_model_name')
-    change_base_model_path = st.text_input("请输入基底模型的路径:", key='change_base_model_path')
-    if st.button('修改') and change_base_model_name and change_base_model_path:
-        file_client.change_base_model(change_base_model_name, change_base_model_path)
-        st.success("基底模型修改成功。")
-
-    st.subheader("激活基底模型")
-    st.markdown(
-        '<span style="font-size: 16px; color: blue;">状态是上线的基底模型才能使用</span>',
-        unsafe_allow_html=True)
-    active_base_model_name = st.selectbox("请选择基底模型:", [''] + names, key='active_base_model_name')
-    if st.button('激活') and active_base_model_name:
-        file_client.active_base_model(active_base_model_name)
-        st.success("基底模型激活成功。")
-
-    st.subheader("下线基底模型")
-    offline_base_model_name = st.selectbox("请选择基底模型:", [''] + names, key='offline_base_model_name')
-    if offline_base_model_name == 'default':
-        st.warning("default 模型不能下线，可以通过修改default模型的路径来实现你的需求。")
-    if st.button('下线') and offline_base_model_name:
-        file_client.offline_base_model(offline_base_model_name)
-        st.success("基底模型下线成功。")
 
 
 def main():
     # 初始化客户端
 
-    tabs_title = ["模型管理", "知识库管理", "知识入库", "模型微调", "知识问答"]
-    tabs_title_enabled = [True, project_config.config.get('index', {}).get('enabled'),
-                          project_config.config.get('index', {}).get('enabled'),
-                          project_config.config.get('tuning', {}).get('enabled'),
-                          project_config.config.get('llm', {}).get('enabled')]
+    tabs_title = ["知识库管理", "知识入库", "知识问答"]
     index_client_front_end = project_config.config.get('index', {}).get('front_end', {})
     index_client_tcp = '%s://%s:%s' % (index_client_front_end.get('protocol', 'tcp'),
                                        index_client_front_end.get('host', 'localhost'),
                                        index_client_front_end.get('port', '7783'))
     index_client = IndexClient(index_client_tcp)
-    file_status_manager = FileStatusManager(project_config.config.get('index', {}).get('sqlite_db_path'))
+
+    llm_client_front_end = project_config.config.get('llm', {}).get('front_end', {})
+    llm_client_tcp = '%s://%s:%s' % (llm_client_front_end.get('protocol', 'tcp'),
+                                     llm_client_front_end.get('host', 'localhost'),
+                                     llm_client_front_end.get('port', '7781'))
+    llm_client = LLMClient(llm_client_tcp)
+    # TODO 可能需要有更新机制
+    llm_service_config = llm_client.llm_config()
+    default_base_model_path = llm_service_config.get('base_model_path')
+    file_status_manager = FileStatusManager(project_config.config.get('base', {}).get('sqlite_db_path'),
+                                            {'default_base_model_path': default_base_model_path})
 
 
     set_page_style()
@@ -623,52 +367,21 @@ def main():
             collection_name_list = [i[0] for i in collections.get('value', [])]
         else:
             collection_name_list = []
-        default_base_model_name = file_status_manager.get_base_model_name_by_path(project_config.default_base_model_path) or 'default'
+        default_base_model_name = file_status_manager.get_base_model_name_by_path(default_base_model_path) or 'default'
         st.session_state.kb_name = st.selectbox("正在使用的知识库", collection_name_list, )
         st.session_state.base_model_path = st.selectbox('基底RWKV模型', [default_base_model_name])
-        st.session_state.state_file_path = st.selectbox("记忆状态", [project_config.default_state_path])
-    if tabs_title_enabled[4]:
-        llm_client_front_end = project_config.config.get('llm', {}).get('front_end', {})
-        llm_client_tcp = '%s://%s:%s' % (llm_client_front_end.get('protocol', 'tcp'),
-                                         llm_client_front_end.get('host', 'localhost'),
-                                         llm_client_front_end.get('port', '7781'))
-        llm_client = LLMClient(llm_client_tcp)
-    else:
-        llm_client = None
-    if app_scenario == tabs_title[0]:
-        base_model_manager(file_status_manager,llm_client, default_base_model_name)
 
+    if app_scenario == tabs_title[0]:
+        knowledgebase_manager(index_client, file_status_manager)
     elif app_scenario == tabs_title[1]:
-        if tabs_title_enabled[1]:
-            knowledgebase_manager(index_client, file_status_manager)
-        else:
-            st.write("配置文件里没开启该功能")
-    elif app_scenario == tabs_title[2]:
-        if tabs_title_enabled[2]:
-            internet_search(index_client, file_status_manager)
-        else:
-            st.write("配置文件里没开启该功能")
-    elif app_scenario == tabs_title[3]:
-        # 在这里添加微调选项卡的内容
-        if tabs_title_enabled[3]:
-            st.title("模型微调")
-            tuning_client_front_end = project_config.config.get('tuning', {}).get('front_end', {})
-            tuning_client_tcp = '%s://%s:%s' % (tuning_client_front_end.get('protocol', 'tcp'),
-                                                   tuning_client_front_end.get('host', 'localhost'),
-                                                   tuning_client_front_end.get('port', '7787'))
-            tuning_client = TuningClient(tuning_client_tcp)
-            jsonl2binidx_manager(tuning_client)
-            wandb_manager(tuning_client)
-            tuning_manager(tuning_client, app_scenario, )
-        else:
-            st.write("配置文件里没开启该功能")
+        internet_search(index_client, file_status_manager, llm_client)
+
     else:
-        if tabs_title_enabled[4]:
-            st.title("知识问答")
-            rag_chain(index_client, llm_client)
-        else:
-            st.write("配置文件里没开启该功能")
+        st.title("知识问答")
+        rag_chain(index_client, llm_client)
+
 
 
 if __name__ == "__main__":
+
     main()

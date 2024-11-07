@@ -11,10 +11,20 @@ class IndexClient:
         self.socket.connect(frontend_url)
         self.socket.setsockopt(zmq.RCVTIMEO, 60000 * 5)
 
-    def index_texts(self,texts,keys=None,collection_name=None):
+    def index_config(self,config):
+        cmd = {"cmd": "INDEX_CONFIG"}
+        self.socket.send(msgpack.packb(cmd, use_bin_type=True))
+        msg = self.socket.recv()
+        resp = msgpack.unpackb(msg, raw=False)
+        return resp
+
+
+    def index_texts(self,texts, embeddings, keys=None,collection_name=None):
         if keys is None or isinstance(keys, list) is False or len(keys) != len(texts):
             keys = [str(uuid.uuid4()) for i in range(len(texts))]
-        cmd = {"cmd": "INDEX_TEXTS", "texts": texts,"keys": keys,'collection_name':collection_name}
+        cmd = {"cmd": "INDEX_TEXTS", "texts": texts,
+               "embeddings": embeddings,
+               "keys": keys,'collection_name':collection_name}
         self.socket.send(msgpack.packb(cmd, use_bin_type=True))
         msg = self.socket.recv()
         resp = msgpack.unpackb(msg, raw=False)
@@ -42,8 +52,8 @@ class IndexClient:
         resp = msgpack.unpackb(msg, raw=False)
         return resp
 
-    def search_nearby(self,text,collection_name):
-        cmd = {"cmd": "SEARCH_NEARBY", "text": text, 'collection_name':collection_name}
+    def search_nearby(self,embeddings,collection_name):
+        cmd = {"cmd": "SEARCH_NEARBY", "embeddings": embeddings, 'collection_name':collection_name}
         self.socket.send(msgpack.packb(cmd, use_bin_type=True))
         msg = self.socket.recv()
         resp = msgpack.unpackb(msg, raw=False)

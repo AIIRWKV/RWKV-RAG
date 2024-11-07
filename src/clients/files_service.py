@@ -1,10 +1,7 @@
-import os
 import threading
 import traceback
 
 import sqlite3
-
-from configuration import config as project_config
 
 
 status_table_name = 'file_status' # 记录文件信息
@@ -61,21 +58,20 @@ class SqliteDB:
 
 
 class FileStatusManager:
-    """
-    后续会通过消息队列，改成异步服务模式
-    """
 
     init_once = False
     lock = threading.Lock()
-    def __init__(self,db_path) -> None:
+    def __init__(self,db_path: str, llm_service_config: dict) -> None:
         self.db_path = db_path
+        self.llm_service_config = llm_service_config
         with FileStatusManager.lock:
             if not FileStatusManager.init_once:
                 self.init_tables()
                 FileStatusManager.init_once = True
 
-
     def init_tables(self):
+        default_base_model_path = self.llm_service_config.get('default_base_model_path', '')
+
         with SqliteDB(self.db_path) as db:
             db.execute(create_status_table_sql)
             db.execute(create_base_model_table_sql)
@@ -83,14 +79,14 @@ class FileStatusManager:
             try:
                 # 将配置文件的基底模型添加到管理界面
                 db_base_model = self.get_using_base_model()
-                config_base_model_name = self.get_base_model_name_by_path(project_config.default_base_model_path)
+                config_base_model_name = self.get_base_model_name_by_path(default_base_model_path)
                 if not db_base_model and config_base_model_name:
                     self.create_or_update_using_base_model(config_base_model_name, None)
                 elif not db_base_model and not config_base_model_name:
-                    self.create_or_update_base_model('default', project_config.default_base_model_path, 1)
+                    self.create_or_update_base_model('default', default_base_model_path, 1)
                     self.create_or_update_using_base_model('default', None)
                 elif db_base_model and not config_base_model_name:
-                    self.create_or_update_base_model('default', project_config.default_base_model_path, 1)
+                    self.create_or_update_base_model('default', default_base_model_path, 1)
                     self.create_or_update_using_base_model('default', db_base_model[0])
                 else:
                     if db_base_model[1] != config_base_model_name:

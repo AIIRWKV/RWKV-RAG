@@ -1,16 +1,10 @@
 # 基础镜像，使用支持 CUDA 的镜像
 FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
-LABEL maintainer=RWKV-RAG-Service
+LABEL maintainer=RWKV-RAG-LLM-Service
 
 # 设置工作目录
 WORKDIR /root
-RUN mkdir -p /root/model
-RUN mkdir -p /root/data
-RUN mkdir -p /root/data/chroma
-RUN mkdir -p /root/data/knowledge_data  # 存放知识库文件
-RUN mkdir -p /root/data/knowledge_data/upload_knowledge # 存放用户上传的知识库文件
-RUN mkdir -p /root/data/knowledge_data/tuning_model  # 存放微调模型
-RUN mkdir -p /root/data/knowledge_data/tuning_data # 存放微调数据
+RUN mkdir -p /root/models   # 模型文件挂载位置
 
 # 初始化环境
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
@@ -57,21 +51,14 @@ RUN apt-get update -y && \
 RUN pip install --upgrade pip setuptools
 RUN pip install --index-url https://pypi.python.org/simple/ pipx && \
     pipx install poetry --force
+
 RUN git clone https://github.com/AIIRWKV/RWKV-RAG.git
-#RUN git clone -b v0.1.3 http://github.com/AIIRWKV/RWKV-RAG.git
 
 # 安装 Python 依赖
 WORKDIR /root/RWKV-RAG
-RUN pip install packaging==24.1 torch==2.2.2
-RUN pip install -r requirements.txt
+RUN pip install -r required/llm_service_requirements.txt
 
-# 安装 tesseract-ocr
-RUN apt-get update && apt-get install -y tesseract-ocr \
-    tesseract-ocr-chi-sim
-
-# 设置环境变量，启用 GPU0， 可根据实际情况修改
-# ENV CUDA_VISIBLE_DEVICES 0
 
 # 启动应用程序
-ENTRYPOINT ["python3.10", "service.py"]
+ENTRYPOINT ["python3.10", "service.py", "--service_name", "llm_service"]
 

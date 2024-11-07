@@ -1,0 +1,7 @@
+back_end:
+  host:
+  protocol: tcp
+  port: 7784
+vectordb_host:
+vectordb_name: chromadb
+vectordb_port: 9998

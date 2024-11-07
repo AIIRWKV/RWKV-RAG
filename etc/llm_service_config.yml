@@ -1,0 +1,7 @@
+back_end:
+  host:
+  port: 7782
+  protocol: tcp
+base_model_path: /root/models/RWKV-x060-World-7B-v2.1-20240507-ctx4096.pth
+embedding_path: /root/models/bge-m31
+reranker_path: /root/models/BAAIbge-reranker-v2-m3

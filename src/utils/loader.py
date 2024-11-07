@@ -38,7 +38,7 @@ class Loader:
         else:
             self._files = [self.file_path]
 
-     def load_txt(self, file_path: str, split_type=None, lang=None):
+    def load_txt(self, file_path: str, split_type=None, lang=None):
         chunk_overlap = self.chunk_overlap
         chunk_size = self.chunk_size
         with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
@@ -60,16 +60,15 @@ class Loader:
             while start < batch_length:
                 end = start + chunk_size
                 current_chunk = batch_content[start:end]
-                yield current_txt
-              
-                
+                current_chunk = current_chunk.replace('\n', '').replace('\r\n', '')
+                yield current_chunk
+
                 # 更新起始位置，考虑重叠
                 start += chunk_size - chunk_overlap
                 chunk_number += 1
 
             start_batch += batch_size
             batch_number += 1
-                
 
     @staticmethod
     def extract_text_from_image(image_data, language='chi_sim'):
@@ -206,5 +205,4 @@ class Loader:
                             yield item
                             f.write(item)
                             f.write('\n')
-
 

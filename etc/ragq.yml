@@ -1,0 +1,13 @@
+llm:
+  front_end:
+    host: localhost
+    protocol: tcp
+    port: 7781
+index:
+  front_end:
+    host: localhost
+    protocol: tcp
+    port: 7783
+base:
+  knowledge_base_path:
+  sqlite_db_path: 

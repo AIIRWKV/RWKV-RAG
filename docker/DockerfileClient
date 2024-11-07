@@ -17,12 +17,12 @@ RUN pip install --index-url https://pypi.python.org/simple/ pipx && \
     pipx install poetry --force
 
 # 下载代码
+
 RUN git clone https://github.com/AIIRWKV/RWKV-RAG.git
-#RUN git clone -b v0.1.3 http://github.com/AIIRWKV/RWKV-RAG.git
 
 # 安装 Python 依赖
 WORKDIR /root/RWKV-RAG
-RUN pip install -r requirements_streamlit.txt
+RUN pip install -r required/requirements.txt
 
 # 安装浏览器驱动
 RUN playwright install
@@ -47,8 +47,6 @@ RUN apt-get update && apt-get install libnss3  \
 RUN apt-get update && apt-get install -y tesseract-ocr \
     tesseract-ocr-chi-sim
 
-# 设置环境变量，启用 GPU0， 可根据实际情况修改
-# ENV CUDA_VISIBLE_DEVICES 0
 
 # 启动应用程序
 ENTRYPOINT ["streamlit", "run", "client.py"]

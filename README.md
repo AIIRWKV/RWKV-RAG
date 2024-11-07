@@ -1,297 +1,67 @@
-# RWKV-RAG  
+<p align="center">
+  <a href="./README.md">简体中文</a> |
+    <a href="./Readme_Eng.md">English</a> 
+</p>
 
-RWKV-RAG 是一个基于 RWKV 模型的一键 RAG 部署系统，可轻松搭建和管理本地知识库，同时提供了基于本地知识库的问答机器人（RWKV-RAG-CHAT）和 RWKV 一键微调功能。
+<details open>
+<summary></b>📕 目录</b></summary>
+
+- 💡 [什么是RWKV-RAG?](#-什么是RWKV-RAG?)
+- 🌟 [主要特性](#-主要特性)
+- 🔎 [系统架构](#-系统架构)
+- 🎬 [开始使用](#-开始使用)
+  - 🚀 [启动消息队列服务](#-启动消息队列服务)
+  - 🚀 [启动模型服务](#-启动模型服务)
+  - 🚀 [启动数据索引及检索服务](#-启动数据索引及检索服务)
+  - 🚀 [启动客户端服务](#-启动客户端服务)
+- 📚 [文档](#-文档)
+- 🌹 [致谢](#-致谢)
+- 🙌 [贡献](#-贡献)
+</details>
+
+
+## 💡 什么是RWKV-RAG?
+
+RWKV-RAG 是基于 [RWKV](https://www.rwkv.cn/) 模型的开源的RAG系统。它为任何规模的企业提供了一个可轻松搭建和管理本地知识库的服务，并提供了基于本地知识库的问答机器人（RWKV-RAG-CHAT）。
 
 RWKV-RAG 使用的模型针对中文数据集进行调优，因此在中文任务上表现更佳。我们也在开发英文调优的模型，敬请期待。 
 
-> [!WARNING]  
+----
+
+## 🌟 主要特性
+### 🍭 **异步分布式架构**
+
+- 基于消息队列的异步分布式架构。子系统解耦合，可以独立部署。
+- 支持单机部署和集群部署，适用于任何规模的企业。
+
+>  [!TIP]
 > 
-> RWKV-RAG 当前只支持 Linux 部署，暂无 Windows 或 MacOS 版本。
-> 
-> 支持docker 镜像部署。参照 [docker部署](docker/README.md) 
-
-## 特性
-
-- **💻 带图形化界面：** RWKV-RAG 的主要功能都有用户友好的 WebUI 界面，提供直观且易于操作的用户体验
-- **⛓️ 异步处理系统：** RWKV-RAG 系统采用了异步处理技术，你可以选择在单个服务器上部署部分服务，也可将服务拆分部署在不同的服务器上
-- **🎛️ 最小封装设计：** RWKV-RAG 系统没有任何封装，每一个步骤都可以任意调用 API 接口
-- **⚒️ 支持多种微调方法：** RWKV-RAG 支持 Lora 和 Pissa 等 RWKV 高效微调方法，此外也集成了一键 StateTune 工具（一种专门针对 RWKV 的极其高效的微调方法）
-
-## 下载和安装
-
-1. **克隆 RWKV-RAG 仓库**
-
-```
-git clone https://github.com/AIIRWKV/RWKV-RAG.git
-```
-
-2. **修改配置文件**
-
-参考 [**修改配置文件**](#修改配置文件)
-
-3. **安装依赖项**
-   
-请安装 requirement.txt 中列出的所有依赖项：
-
-```shell
-pip install -r requirements.txt 
-```
-> [!TIP]  
-> 
-> - 推荐使用 Python 3.10 或 Python 3.9
-> - 推荐使用 torch 2.2.2+cu121
-> - PyTorch Lightning **必须**使用 1.9.5 版本
-
-安装完依赖项后，执行命令``` playwright install```  ```playwright install-deps``` 安装浏览器驱动，另外更新组件：
-```shell
-apt-get update && apt-get install libnss3  \
-   libnspr4  \
-   libdbus-1-3 \
-   libatk1.0-0  \
-   libatk-bridge2.0-0  \
-   libcups2  \
-   libdrm2  \
-   libatspi2.0-0  \
-   libxcomposite1  \
-   libxdamage1 \
-   libxfixes3  \
-   libxrandr2 \
-   libgbm1  \
-   libxkbcommon0 \
-   libasound2
-```
-
-4. **确认 VRAM 是否充足**
-
-以下是各参数 RWKV 模型的**推理 VRAM 需求**。请确认设备 VRAM 并选择一个合适的 RWKV 模型作为 RWKV-RAG 系统：
-
-| SIZE | VRAM |
-|----------|----------|
-| RWKV-6-1B6   | 4G   |
-| RWKV-6-3B   | 7.5G   |
-| RWKV-6-7B   | 18G |
-| RWKV-6-12B   | 24G|
-| RWKV-6-14B |30G|
-
-> [!WARNING]  
-> 
-> 当前 RWKV-RAG 的**知识库功能**需要加载 RWKV 模型，**一键微调功能**会再次加载 RWKV 模型。
-> 
-> **同时使用知识库和微调服务时，需要合理分配 GPU 的显存，避免因显存不足而导致的错误。**
-
-## 模型下载
-
-完整的 RWKV-RAG 服务需要以下四种模型/文件，请将以下四类模型下载到你的 Linux 工作区：
-
-- 下载 RWKV base model（基底模型）：https://huggingface.co/BlinkDL
-- 下载 State 文件（用于问答机器人功能）：https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main
-- 下载 BGEM3 重排序模型（rerank model）：https://huggingface.co/BAAI/bge-reranker-v2-m3
-- 下载一项嵌入模型（embedding model）
-  <!-- - 下载 RWKV Embedding 模型: https://huggingface.co/yueyulin/rwkv6_emb_4k_base -->
-  - 下载 BGEM3 Embedding 模型: https://huggingface.co/BAAI/bge-m3 
-
-> [!TIP]  
-> 可以通过更改 `ragq.yml` 文件，修改 RWKV-RAG 系统使用的 embedding model 和 rerank model。
-
-目前 BGEM3 更适合作为 RWKV-RAG 系统的 rerank 和 embedding 模型。我们也在开发性能更强的 RWKV embedding 和 rerank 模型，以替换掉 BGEM3 模型。
-
-## 修改配置文件
-
-RWKV-RAG 默认启用 LLM Service（**大模型生成服务**） 、Index Service（**数据索引及检索服务**）和 Tuning Service（**一键微调服务**）三种服务。可以通过修改项目配置文件 `ragq.yml` 以启用或禁用某一项服务。
-
-### 修改 LLM Service 配置
-
-LLM service 配置项会影响 RWKV-RAG 系统的嵌入、重排序和问答机器人（RWKV-RAG-CHAT）等服务。重点关注以下配置项：
-
-- base_model_path: RWKV 基底模型的路径，请参考 [RWKV 模型下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B) 
-- embedding_path: 嵌入模型的路径，推荐使用: bge-m31
-- reranker_path: 重排序模型的路径，推荐使用: BAAIbge-reranker-v2-m3
-- state_path:  State 文件的路径
-- num_workers: LLM 服务使用的显卡数量
-- device: 指定 LLM 运行的 GPU ，如果你只有一张显卡则改为 cuda:0
-
-host 和端口号等参数请按需调整。
-
-### 修改 Index Service 配置
-
-Index Service 配置项会影响 RWKV-RAG 系统的知识库管理等 ChromaDB 数据库相关服务。请重点关注以下配置项：
-
-- chroma_db_path: ChromaDB 数据库存放数据路径
-- chroma_port: ChromaDB 端口
-- chroma_host: ChromaDB 主机 IP
-- sqlite_db_path: sqlite数据库存放数据路径
-
-host 和端口号等参数请按需调整。
-
-### 修改 Tuning Service 配置
-
-Tuning Service 配置项主要影响 RWKV-RAG 的一键微调功能，请按需调整 host 和端口号。
-
-## 启动 RWKV-RAG 服务
-
-模型下载好后并且配置文件修改完毕后。在 RWKV-RAG 目录运行以下命令，以启动 RWKV-RAG 的主服务：
-
-```shell
-python3 service.py 
-```
-
-## 启动 WebUI 客户端
-
-RWKV-RAG目前是使用streamlit框架开发WebUI客户端，启动命令如下：
-
-```shell
-streamlit run client.py
-```
-在浏览器中打开 Streamlit 提供的 URL，应当可以看到如下界面：
-
-![RWKV-RAG-WebUI-client](./docs/RWKV-RAG-WebUI-client.png)
-
-至此， RWKV-RAG 服务已成功启动，可以在 WebUI 客户端中体验知识库管理、问答机器人，以及模型微调等功能。
-
-
-## RWKV-RAG 功能指引
-
-### 模型管理
-模型管理界面用于管理 RWKV-RAG 系统的基底模型。支持对基底模型进行添加、修改、上线、下线和重启等操作。
-
-> [!TIP]  
-> 
-> 上线状态的模型才能被使用；下线状态的模型不能被使用。
-> 
-> 重启模型时会影响到正在执行的任务；模型重启后，如果不更改配置文件的基底模型参数base_model_path的值，则后续重启服务时都是用本次更改后的模型作为默认基底模型。
-
-![RWKV-RAG-Base-Model-Manage](./docs/RWKV-RAG-Base-Model-Manage.png)
-
-### 知识库管理
-
-知识库管理界面用于管理存储在 ChromaDB 数据库中的知识库，一个collection就是一个知识库，服务启动时默认都会创建一个名为initial的知识库。支持对知识库进行新增、删除和查询知识库内容等操作。
-
-> [!TIP]  
-> 
-> 由于Streamlit架构的限制，新增、删除知识库后，建议刷新 Web 页面同步最新改动。
-
-![RWKV-RAG-WebUI-knowledge-manager](./docs/RWKV-RAG-Manage-Database.gif)
-
----
-
-### 知识入库
-
-知识入库界面用于将文本内容**分块索引**到现有的知识库中，已入库的知识可以被检索，用于问答机器人或其他下游服务。
-
-RWKV-RAG 支持三种不同的知识入库方法，这些方法支持解析 TXT、PDF和Excel 三种文件格式：
-
-- **手动输入：** 在输入框中手动输入或粘贴文本内容，系统会按行对文本进行Chunking（**分块**）
-- **从本地计算机上传到服务器端：** 从你的本地客户端往服务器端上传一个文件，系统会按照固定长度和块重叠字符数对文件进行Chunking（**分块**）
-- **从服务器端本地上传：** 如果你需要将服务器中**某个文件**或者**某个目录**下所有文件的内容加入知识库，填写文件或者目录的路径，系统会按照固定长度和块重叠字符数对文件进行Chunking（**分块**）
-
-
-> [!WARNING]  
-> 
-> 支持文本格式或图片格式的PDF文件入库，但是需要提前安装**tesseract**，并需要安装中文语言包(**chi_sim**)
-
-> [!TIP]  
-> 
-> RWKV-RAG 也支持从互联网上搜索知识，并将搜索到的知识文本以 TXT 格式保存到**服务器端的指定目录**。
+>  RWKV-RAG也推出了[个人版](https://github.com/AIIRWKV/RWKV-RAG-Personal)，适合个人用户使用。
 >
-> **联网搜索得到的 txt 文本文件仍然需要进行知识入库，才能加入现有知识库中。**
 
-![联网搜索知识](./docs/RWKV-RAG-Search-From-Internet.png)
+  
+### 🍔 **支持多种数据源**
 
----
+- 支持 Excel、文本、PDF、网页等。
 
-### 知识问答机器人
+### 🛀 **部署简单**
 
-RWKV-RAG 系统提供基于知识库的问答机器人（RWKV-RAG-CHAT）。用户可以从现有的知识库中检索特定主题的知识，然后利用提取到的知识与模型进行聊天，以增强模型的回答效果。
-
-RWKV-RAG-CHAT 的工作流程如下：
-
-1. **输入查询内容，点击 “召回” 按钮**
-   
-  ![RWKV-RAG-CHAT-1-Query](./docs/RWKV-RAG-CHAT-1-Query.png)
-
-2. **RWKV-RAG 从知识库中提取最相关的知识（文本块）**
-   
-  ![RWKV-RAG-CHAT-2-Get-Text](./docs/RWKV-RAG-CHAT-2-Get-Text.png)
-
-3. **rerank 模型对提取出来的文本块进行匹配度打分，选出最佳匹配知识**
-   
-   ![RWKV-RAG-CHAT-3-Rerank](docs/RWKV-RAG-CHAT-3-Rerank.png)
-
-4. **在底部输入框中输入问题并点击 “发送” 按钮，与模型聊天**
-
-  ![RWKV-RAG-CHAT-4-Chat](./docs/RWKV-RAG-CHAT-4-Chat.png)
+- 每个子系统都有Docker部署脚本，只需简单配置即可部署。
+- 可配置的大型语言模型以及嵌入模型。
+- 支持多种向量数据库。同时可根据自己的需求在项目向量数据库适配层做一些简单的开发工作即可集成新的向量数据库。
 
 
-RWKV-RAG-CHAT 会基于**最佳匹配知识和最近 6 回合的对话内容**，提供准确的回答。
+## 🔎 系统架构
 
-> [!TIP]  
-> 
-> 当前 RWKV-RAG-CHAT 的知识问答能力源于该 [State 文件](https://huggingface.co/SupYumm/rwkv6_7b_qabot/tree/main)。
-> 
-> 可以通过微调训练 RWKV State 文件，使 RWKV-RAG-CHAT 更好地适应其他下游任务。
+即使是最小化的 RAG 系统也会涉及多个子系统，这些子系统可能会相互影响。为了提高开发灵活性，我们设计了一个基于队列的 RAG 系统。
 
----
+我们认为一个健壮的 RAG 系统其每个组件都必须可插拔且易于扩展，因此远程过程调用不应该是硬编码的方式，比如TCP/InProc/InterProcess等。
 
-### 一键微调 RWKV
+理论上，RAG 的最佳通信模式应该是是发布-订阅模型（Pub/Sub），即每个组件连接到一个代理-Broker（或称为中介-Mediator）以发送请求和接收响应。
+通常，为了确保效率和可靠性，会使用像```RabbitMQ```、```RocketMQ```这样的重量级消息队列。 这些消息队列服务本身也是需要管理和维护的复杂系统，这无疑增加了 RAG 的使用门槛和维护成本。
 
-RWKV-RAG 支持 Lora 和 Pissa 等 RWKV 高效微调方法，此外也集成了一键 State Tuning 工具（一种专门针对 RWKV 的极其高效的微调方法）。
-
-请遵循以下步骤，体验 RWKV-RAG 的一键微调功能。
-
-#### 1. 准备微调数据
-
-请上传**一个符合 RWKV 数据格式的 jsonl 文件**或手动输入 **jsonl 格式**的文本，作为 RWKV 微调训练数据：
-
-- Epoch：将数据重复多少次，每次复制会随机排列数据顺序
-- Context Length：根据数据上下文长度而定，建议 1024 或 512
-
-> [!TIP]  
-> 
-> 如果你不清楚 RWKV 的标准训练数据格式，请参考：[**RWKV 教程 - 准备微调数据**](https://rwkv.cn/RWKV-Fine-Tuning/FT-Dataset)
-
-![RWKV-RAG-Tuning-Data](./docs/RWKV-RAG-Tuning-Data.png)
-
-
-#### 2. 注册 WandB 
-
-请注册 [WandB](https://wandb.ai/) ，以监控微调过程的实时状态，特别是损失曲线。
-
-1. 注册 WandB 账号，打开设置页面
-2. 在设置中找到你的 API key ，并填写到 RWKV-RAG 中
-3. 在 WandB 中新建一个任务，并在 RWKV-RAG 中选择此任务
-
-RWKV-RAG 的后台终端上会显示一个任务栏，用于跟踪微调过程。
-
-#### 3. 设置微调参数
-
-开始微调前，请确认你是否有充足的 VRAM。以下是 State tuning 的显存需求（基于 1024 上下文窗口）：
-
-| Size      | fp16       | int8       | nf4       |
-|---------------|------------|------------|-----------|
-| RWKV6-1.6B    | 5.8GB GPU  | 4.5GB GPU  | 3.9GB GPU |
-| RWKV6-3B      | 8.7GB GPU  | 6.2GB GPU  | 4.9GB GPU |
-| RWKV6-7B      | 17.8GB GPU | 11.9GB GPU | 8.5GB GPU |
-
-在确认你有充足的 VRAN 后，请修改页面的各项训练参数，并开启训练。
-
-有关训练参数和超参数的详细解释，请参阅[RWKV 教程 - 微调参数](https://rwkv.cn/RWKV-Fine-Tuning/State-Tuning)
-
-![](./docs/RWKV-RAG-Tuning-Service-Mange.png)
-
-
-## 系统设计
-
-即使是最小化的 RAG 系统也会涉及多个子系统，这些子系统可能会相互影响。为了提高开发灵活性并平滑开发曲线，我们设计了一个基于队列的 RAG 系统。
-
-我们认为一个健壮的 RAG 系统其每个组件都必须可插拔且易于扩展，因此远程过程调用（RPC）不应该硬编码为 TCP/InProc/InterProcess 等特定通信协议。
-
-理论上，RWKV-RAG 的最佳通信模式应该是是发布-订阅模型（Pub/Sub），即每个组件连接到一个代理-Broker（或称为中介-Mediator）以发送请求和接收响应。
-
-然而，Pub/Sub 通信通常使用 RabbitMQ、RocketMQ 这样的消息队列。这些消息队列服务本身也是需要管理和维护的复杂系统，这无疑增加了 RWKV-RAG 的使用门槛和维护成本。
-
-综合以上考虑，我们对 RWKV-RAG 的设计是**使用一个无代理的队列库 [ZeroMQ](https://github.com/zeromq) 作为队列服务**。得益于 ZeroMQ 稳定且高性能的实现，RWKV-RAG 框架可以从单个资源受限的节点扩展到多节点的大型系统。
-
-RWKV_RAG 系统的架构如下：
+综合以上考虑，我们对 RWKV-RAG 的设计是**使用一个无代理的队列库 [ZeroMQ](https://github.com/zeromq) 作为队列服务**。得益于 ZeroMQ 稳定且高性能的实现，
+我们可以实现RWKV-RAG 从单个资源受限的节点扩展到多节点的大型分布式系统。RWKV-RAG系统架构如下：
 
 ```mermaid
 stateDiagram-v2
@@ -317,34 +87,6 @@ note right of LLM_Service
     with different States to provide different functions.
 end note
 
-TuningClient
-Tuning_Proxy
-state Tuning_Proxy{
-    TuningFrontEnd
-    state TuningFrontEnd{
-        J2BFrontEnd
-        FTFrontEnd
-    }
-    TuningFrontEnd --> TuningRouter 
-    TuningRouter -->  TuningFrontEnd
-    TuningRouter --> TuningBackend
-    TuningBackend
-    state TuningBackend{
-        J2BBackend
-        FTBackend
-    }
-}
-TuningClient --> TuningFrontEnd
-TuningFrontEnd --> TuningClient
-TuningService --> TuningBackend
-TuningBackend --> TuningService
-note right of TuningService
-Tuning Services is consisted of two blocks:
-. J2B that prepares rawdata into tranning format.
-. Tuning that helps user to finetune model using Lora,Pissa or State-Tune.
-end note
-
-
 IndexClient
 IndexProxy
 state IndexProxy{
@@ -369,11 +111,247 @@ end note
 
 ```
 
-## 未来计划
+## 🎬 开始使用
 
-以 ASR 和视觉为主的多模态框架将很快上线。此外，GraphRAG 和提示优化也在开发中。
+RWKV-RAG是基于 Docker部署的，因此需要先安装 Docker。如果您尚未在本地计算机上安装 Docker，请参阅[安装 Docker Engine](https://docs.docker.com/engine/install/)。
 
-## Acknowledgement
+### 🚀 启动消息队列服务
+
+RWKV-RAG 是基于```ZeroMQ```的异步分布式架构，采用了```ZeroMQ```的代理模式来实现各个子系统之间的通信。如果你对该部分技术细节不是很了解，建议查看相关文档。
+
+在启动其它服务之前，先要启动消息队列服务，同时代理模式需要配置前端套接字和后端套接字，它的作用类似于前端套接字负责接收用户请求，后端套接字负责将请求转发给子系统并返回处理结果。
+
+#### 1. 🏢构建镜像
+
+该服务镜像构建完后大小约为1GB。
+```bash
+git clone https://github.com/AIIRWKV/RWKV-RAG.git # 如果之前已经clone，则跳过这一步
+cd RWKV-RAG/docker
+sudo docker build -f DockerfileProxyService -t rwkv_rag/rwkv_rag_proxy_service:latest .
+```
+
+#### 2. 🔧 修改配置文件
+修改项目```etc/proxy_service_config.yml```文件，主要是配置各个子系统的代理相关参数。
+
+配置示例如下：
+```yaml
+llm:  # 模型服务代理配置
+  front_end:  # 前端套接字配置，
+    host: 0.0.0.0  # 消息队列服务器地址，默认是0.0.0.0，这样可通过宿主机IP地址访问
+    protocol: tcp
+    port: 7781
+  back_end:  # 后端套接字配置
+    host: 0.0.0.0op # 消息队列服务器地址，默认是0.0.0.0，这样可通过宿主机IP地址访问
+    protocol: tcp
+    port: 7782   
+```
+这样客户端可以通过消息队列服务器的7781端口发布消息，子系统后端通过消息队列服务器7782端口接收消息。其它子系统的代理配置类似。
+
+#### 3. 🚀启动容器
+假设宿主机配置文件路径```/home/rwkv/RWKV-RAG/etc/proxy_service_config.yml```，通过挂载方式，避免进入容器修改配置文件。启动容器，命令如下：
+
+```bash
+sudo docker run -it --name rwkv_rag_proxy_service  -p 7781:7781 -p 7782:7782 -p 7783:7783 -p 7784:7784  -v /home/rwkv/RWKV-RAG/etc/proxy_service_config.yml:/root/RWKV-RAG/etc/proxy_service_config.yml rwkv_rag/rwkv_rag_proxy_service:latest
+```
+
+> [!WARNING]
+> 
+> ```etc/proxy_service_config.yml```中配置的端口都需要映射到宿主机，否则无法访问。
+
+---
+### 🚀 启动模型服务
+
+
+#### 📝 前提条件
+
+该服务镜像构建完后大小约为20GB。由于模型服务需要加载本地模型，需要提前安装[**NVIDIA驱动程序**](https://www.nvidia.cn/drivers/lookup/)和[**CUDA12.1+**](https://developer.nvidia.com/cuda-downloads)，同时对硬件配置有一定的要求。
+- CPU >= 4 cores
+- RAM >= 16GB 
+    > 使用的模型文件越大，需要的内存也会越大。
+- Disk >= 50GB
+- NVIDIA GPU >= 1
+  > 显卡内存要求与模型大小有关。各参数 RWKV模型需要的现存要求如下：
+  > 
+  > | SIZE       | VRAM 
+  > ------------|----------
+  > | RWKV-6-1B6 | 4G   |
+  > | RWKV-6-3B  | 7.5G   
+  > | RWKV-6-7B  | 18G |
+  > | RWKV-6-12B | 24G|
+  >  | RWKV-6-14B |30G|
+  >
+
+####  1. 🔨安装 NVIDIA Container Toolkit
+
+在Docker容器中使用CUDA，需要先安装NVIDIA Container Toolkit。如果你还没有安装 NVIDIA Container Toolkit，你可以按照以下步骤进行安装：
+```shell
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+sudo apt-get update
+sudo apt-get install -y nvidia-docker2
+```
+安装完成后，重启docker
+```shell
+sudo systemctl restart docker
+```
+
+#### 2. 🏢构建镜像
+
+```bash
+git clone https://github.com/AIIRWKV/RWKV-RAG.git
+cd RWKV-RAG/docker
+sudo docker build -f DockerfileLLMService -t rwkv_rag/rwkv_rag_llm_service:latest .
+```
+
+> [!TIP]
+> 
+> 构建时间会有一些长，后续会将镜像上传到docker hub，方便直接拉取。
+> 
+
+#### 3.  ⬇下载模型文件
+
+请将以下模型下载到工作区：
+
+- 下载 RWKV base model（基底模型）：[HuggingFace下载地址](https://huggingface.co/SupYumm/rwkv6_rag_qabot/tree/main)
+- 下载 BGEM3 重排序模型（rerank model）：[HuggingFace下载地址](https://huggingface.co/BAAI/bge-reranker-v2-m3)  [modelscope下载地址](https://modelscope.cn/models/BAAI/bge-reranker-v2-m3)
+- 下载 BGEM3 Embedding 模型: [[HuggingFace下载地址](https://huggingface.co/BAAI/bge-m3)   [modelscope下载地址](https://modelscope.cn/models/BAAI/bge-m3)
+
+> [!TIP]  
+> 
+> 建议模型文件放在宿主机同一个文件夹，我们是通过挂载的方式将宿主机存放模型的目录挂载到容器的```/root/models```目录下，便于管理，如下图示例所示。
+> 
+> <img src="./docs/img/models_example.png" alt="description" style="width: 50%; height: auto;"/>
+
+
+#### 4. 🔧 修改配置文件
+修改项目```etc/llm_service_config.yml```文件，主要是配置LLM模型、嵌入模型、rerank模型路径以及后端服务。
+
+- **base_model_path**: RWKV 基底模型的路径，请参考 [RWKV 模型下载](https://rwkv.cn/RWKV-Fine-Tuning/Introduction#%E4%B8%8B%E8%BD%BD%E5%9F%BA%E5%BA%95-rwkv-%E6%A8%A1%E5%9E%8B) 
+- **embedding_path**: 嵌入模型的路径，推荐使用: bge-m31
+- **reranker_path**: 重排序模型的路径，推荐使用: BAAIbge-reranker-v2-m3
+- **back_end**: 消息队列服务模型服务相关的代理模式配置中的后端套接字配置
+  - **host**: 消息队列服务器IP地址
+  - **port**: 7782
+  - **protocol**: tcp
+
+> [!WARNING]
+> 
+> 在前文提到过宿主机存放模型的目录挂载到容器的```/root/models```目录下，所以在修改模型路径时，不要修改路径的```/root/models```前缀。
+> 
+
+#### 5. 🚀启动容器
+假设将模型文件都下载到了宿主机的```/home/rwkv/models```目录下，配置文件路径```/home/rwkv/RWKV-RAG/etc/llm_service_config.yml```，启动容器，命令如下：
+
+```bash
+sudo docker run -it --gpus all --name rwkv_rag_llm_service  -v /home/rwkv/models:/root/models  -v /home/rwkv/RWKV-RAG/etc/llm_service_config.yml:/root/RWKV-RAG/etc/llm_service_config.yml rwkv_rag/rwkv_rag_llm_service:latest
+```
+
+<br>
+
+### 🚀 启动数据索引及检索服务
+
+<br>
+
+#### 1. 🌱向量数据库 Docker部署
+
+RWKV-RAG 默认使用的是ChromaDB向量数据库，后续将会集成一些其它的向量数据库。
+
+> [!TIP]
+> 
+> 也可以根据需要集成一些感兴趣的向量数据库，只需要在项目的```src/vectordb/```目录下实现抽象类``` AbstractVectorDBManager```对应的接口即可。
+>
+
+```bash
+sudo docker pull chromadb/chroma
+sudo docker run --name chromadb_service -p 9998:8000 -v /home/rwkv/Data/chroma:/chroma/chroma -e IS_PERSISTENT=TRUE -e ANONYMIZED_TELEMETRY=TRUE chromadb/chroma:latest
+```
+- chromadb/chroma镜像暴露的端口是8000，用9998(可自行修改)端口做映射，这样可以通过宿主机的9999端口访问chromadb服务。如果能正常访问，说明部署成功。
+- -v /home/rwkv/Data/chroma:/chroma/chroma 是将宿主机的/home/rwkv/Data/chroma目录挂载到chromadb的/chroma/chroma目录下，当容器删除时，数据不会丢失。这个需要根据你的服务器实际情况自行修改。
+
+
+#### 2. 🏢构建镜像
+
+该服务镜像构建完后大小约为1.5GB。
+```bash
+git clone https://github.com/AIIRWKV/RWKV-RAG.git # 如果之前已经clone，则跳过这一步
+cd RWKV-RAG/docker
+sudo docker build -f DockerfileIndexService -t rwkv_rag/rwkv_rag_index_service:latest .
+```
+
+#### 3. 🔧 修改配置文件
+修改项目```etc/index_service_config.yml```文件，主要是向量数据库的服务地址以和后端服务。
+
+- **vectordb_name**: 向量数据库类型，默认为chroma。
+- **vectordb_host**: 向量数据库服务地址，**不能**是```localhost```或者**回环地址**，应该是部署向量数据库的**服务器IP地址**。
+- **vectordb_port**: 9998，向量数据库服务端口
+- **back_end**: 消息队列服务数据检索服务相关的代理模式配置中的后端套接字配置
+  - **host**: 消息队列服务器IP地址
+  - **port**: 7784
+  - **protocol**: tcp
+
+
+#### 4. 🚀启动容器
+假设宿主机配置文件路径```/home/rwkv/RWKV-RAG/etc/index_service_config.yml```，启动容器，命令如下：
+
+```bash
+sudo docker run -it --name rwkv_rag_index_service -v /home/rwkv/RWKV-RAG/etc/index_service_config.yml:/root/RWKV-RAG/etc/index_service_config.yml rwkv_rag/rwkv_rag_index_service:latest
+```
+
+
+
+
+<br>
+
+### 🚀 启动客户端服务
+
+客户端是基于```streamlit```实现的一个简洁的交互式Web系统，同时也包含一些数据处理类的功能，后续会进行前后端分离，使用更丰富的交互方式，敬请期待！
+#### 1. 🏢构建镜像
+
+该服务镜像构建完后大小约为3.5GB。
+```bash
+git clone https://github.com/AIIRWKV/RWKV-RAG.git # 如果之前已经clone，则跳过这一步
+cd RWKV-RAG/docker
+sudo docker build -f DockerfileClient -t rwkv_rag/rwkv_rag_client:latest .
+```
+
+#### 2. 🔧 修改配置文件
+修改项目```etc/ragq.yml```文件，主要是配置各个子系统的前端套接字配置。
+
+配置示例如下：
+```yaml
+llm:  # 模型服务的配置
+  front_end:  # 前端套接字配置
+    host: 消息队列服务器IP地址
+    protocol: tcp
+    port: 7781
+index: # 数据检索服务的配置
+  front_end: # 前端套接字配置
+    host: # 消息队列服务器IP地址
+    protocol: tcp
+    port: 7783
+base:  # 基础配置
+  knowledge_base_path:  # 知识库原始文件存储路径，确保路径存在
+  sqlite_db_path: #后端数据库SQLite数据库文件路径，确保路径存在
+```
+
+#### 3. 🚀启动容器
+假设宿主机配置文件路径```/home/rwkv/RWKV-RAG/etc/ragq.yml```，启动容器，命令如下：
+
+```bash
+sudo docker run -it --name rwkv_rag_client -p 8501:8501 -v /home/rwkv/RWKV-RAG/etc/ragq.yml:/root/RWKV-RAG/etc/ragq.yml rwkv_rag/rwkv_rag_client:latest
+```
+
+
+## 📚 文档
+- [使用指南](docs/User_guide.md)
+
+
+## 🌹致谢
 - 所有 RWKV 微调服务改编自 [@J.L ](https://github.com/JL-er)的 [RWKV-PEFT](https://github.com/JL-er/RWKV-PEFT) 项目
 - 所有 RWKV 模型来自 [@BlinkDL](https://github.com/BlinkDL) 的 [RWKV-LM ](https://github.com/BlinkDL/RWKV-LM)项目
-- 项目作者：[YYnil](https://github.com/yynil) ; [Ojiyum](https://github.com/Ojiyumm) ;  [LonghuaLiu](https://github.com/Liu3420175)
+
+
+## 🙌 贡献
+
+RWKV-RAG 因其开放的协作环境而不断进步和成长。我们鼓励并欢迎社区的每一位成员积极参与贡献。如果您有兴趣加入我们的行列，请先阅读我们的[贡献指南](docs/CONTRIBUTING.md) 。
