@@ -39,6 +39,12 @@ RWKV-RAG 使用的模型针对中文数据集进行调优，因此在中文任�
 >  RWKV-RAG也推出了[个人版](https://github.com/AIIRWKV/RWKV-RAG-Personal)，适合个人用户使用。
 >
 
+
+###  🔐**数据安全**  
+
+- 所有的模型服务和向量数据库服务都使用本地化部署，因此不会涉及任何数据上传，保证企业数据安全。
+
+
   
 ### 🍔 **支持多种数据源**
 
@@ -215,7 +221,7 @@ sudo docker build -f DockerfileLLMService -t rwkv_rag/rwkv_rag_llm_service:lates
 
 - 下载 RWKV base model（基底模型）：[HuggingFace下载地址](https://huggingface.co/SupYumm/rwkv6_rag_qabot/tree/main)
 - 下载 BGEM3 重排序模型（rerank model）：[HuggingFace下载地址](https://huggingface.co/BAAI/bge-reranker-v2-m3)  [modelscope下载地址](https://modelscope.cn/models/BAAI/bge-reranker-v2-m3)
-- 下载 BGEM3 Embedding 模型: [[HuggingFace下载地址](https://huggingface.co/BAAI/bge-m3)   [modelscope下载地址](https://modelscope.cn/models/BAAI/bge-m3)
+- 下载 BGEM3 Embedding 模型: [HuggingFace下载地址](https://huggingface.co/BAAI/bge-m3)   [modelscope下载地址](https://modelscope.cn/models/BAAI/bge-m3)
 
 > [!TIP]  
 > 
