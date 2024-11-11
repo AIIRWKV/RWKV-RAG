@@ -79,7 +79,7 @@ class AbstractVectorDBManager(ABC):
         搜索向量
         :param kwargs:必须有如下键：
             collection_name: str
-            embeddings: List[(float)]
+            embeddings: List[numpy.ndarray[numpy.float16]]
         :return:
         """
 

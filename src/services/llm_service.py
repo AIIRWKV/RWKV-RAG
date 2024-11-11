@@ -1,6 +1,7 @@
 import gc
 import os
 import traceback
+from typing import List
 
 import torch
 from FlagEmbedding import FlagReranker, BGEM3FlagModel
@@ -107,7 +108,7 @@ class LLMService:
         self.reranker = FlagReranker(rerank_path, use_fp16=True)  # Setting use_fp16 to True speeds
         self._current_reranker_path = rerank_path
 
-    def get_embeddings(self, inputs, bgem3_path=None):
+    def get_embeddings(self, inputs, bgem3_path=None)->List[List[float]]:
         if isinstance(inputs, str):
             inputs = [inputs]
         if not bgem3_path:
@@ -183,7 +184,7 @@ class LLMServiceWorker(AbstractServiceWorker):
         """
         return self.service_config
 
-    def cmd_get_embeddings(self, cmd: dict):
+    def cmd_get_embeddings(self, cmd: dict)->List[List[float]]:
         texts = cmd.get("texts")
         bgem3_path = cmd.get("bgem3_path")
         value = self.llm_service.get_embeddings(texts, bgem3_path)

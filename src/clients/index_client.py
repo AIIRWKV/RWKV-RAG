@@ -1,4 +1,5 @@
 import uuid
+from typing import List
 
 import msgpack
 import zmq
@@ -19,7 +20,7 @@ class IndexClient:
         return resp
 
 
-    def index_texts(self,texts, embeddings, keys=None,collection_name=None):
+    def index_texts(self,texts, embeddings:List[List[float]], keys=None,collection_name=None):
         if keys is None or isinstance(keys, list) is False or len(keys) != len(texts):
             keys = [str(uuid.uuid4()) for i in range(len(texts))]
         cmd = {"cmd": "INDEX_TEXTS", "texts": texts,
