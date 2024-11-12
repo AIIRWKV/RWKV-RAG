@@ -224,8 +224,7 @@ def internet_search(index_client: IndexClient, file_client: FileStatusManager, l
             # 记录文件入库状态
             if is_success:
                 for path in loader.output_files:
-                    if not file_client.check_file_exists(path, st.session_state.kb_name):
-                        file_client.add_file(path, st.session_state.kb_name)
+                    file_client.add_file(path, st.session_state.kb_name)
 
         elif load_button:
             st.warning("参数不能为空。")
@@ -269,8 +268,7 @@ def internet_search(index_client: IndexClient, file_client: FileStatusManager, l
                 # 记录文件入库状态
                 if is_success:
                     for path in loader.output_files:
-                        if not file_client.check_file_exists(path, st.session_state.kb_name):
-                            file_client.add_file(path, st.session_state.kb_name)
+                        file_client.add_file(path, st.session_state.kb_name)
 
 
 
