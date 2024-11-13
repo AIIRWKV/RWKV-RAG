@@ -1,4 +1,5 @@
 #coding=utf-8
+from typing import List
 from abc import ABC, abstractmethod
 
 VECTOR_DB_DIMENSION = 1024  # 向量维度
@@ -62,7 +63,7 @@ class AbstractVectorDBManager(ABC):
         """
 
     @abstractmethod
-    def add(self, kwargs: dict):
+    def add(self, kwargs: dict)-> List[str]:
         """
         添加向量
         :param kwargs:必须有如下键
@@ -70,7 +71,7 @@ class AbstractVectorDBManager(ABC):
             texts： List[(str)]
             collection_name： str
             embeddings: List[numpy.ndarray[numpy.float16]]
-        :return:
+        :return: uuid列表
         """
 
     @abstractmethod

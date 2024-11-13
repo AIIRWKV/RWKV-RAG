@@ -1,4 +1,3 @@
-import uuid
 from typing import List
 
 import msgpack
@@ -21,15 +20,13 @@ class IndexClient:
 
 
     def index_texts(self,texts, embeddings:List[List[float]], keys=None,collection_name=None):
-        if keys is None or isinstance(keys, list) is False or len(keys) != len(texts):
-            keys = [str(uuid.uuid4()) for i in range(len(texts))]
-        cmd = {"cmd": "INDEX_TEXTS", "texts": texts,
+        cmd = {"cmd": "INDEX_TEXTS",
+               "texts": texts,
                "embeddings": embeddings,
-               "keys": keys,'collection_name':collection_name}
+               'collection_name':collection_name}
         self.socket.send(msgpack.packb(cmd, use_bin_type=True))
         msg = self.socket.recv()
         resp = msgpack.unpackb(msg, raw=False)
-        resp["keys"] = keys
         return resp
 
     def show_collection(self):

@@ -2,11 +2,11 @@
 """
 Windows  Linux都支持
 """
-import uuid
 from datetime import datetime
 
 from src.vectordb import RECALL_NUMBER
 from src.vectordb import AbstractVectorDBManager
+from src.utils.tools import calculate_string_md5
 from .errors import VectorDBCollectionNotExistError, VectorDBError
 
 
@@ -65,7 +65,7 @@ class ChromaDBManager(AbstractVectorDBManager):
         embeddings = kwargs.get('embeddings')
 
         if keys is None or isinstance(keys, list) is False or len(keys) != len(values):
-            keys = [str(uuid.uuid4()) for i in range(len(values))]
+            keys = [calculate_string_md5(value) for value in values]
         client = self.client()
         new_embeddings = [eb for eb in embeddings]
         try:
@@ -78,7 +78,7 @@ class ChromaDBManager(AbstractVectorDBManager):
             documents=values
         )
         # index the value
-        return True
+        return keys
 
     def search_nearby(self, kwargs: dict):
         collection_name = kwargs.get('collection_name')
