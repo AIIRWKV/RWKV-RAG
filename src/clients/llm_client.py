@@ -15,13 +15,7 @@ class LLMClient:
         resp = msgpack.unpackb(msg, raw=False)
         return resp
 
-    def encode(self,texts):
-        cmd = {"cmd": "GET_EMBEDDINGS", "texts": texts}
-        self.socket.send(msgpack.packb(cmd, use_bin_type=True))
-        msg = self.socket.recv()
-        resp = msgpack.unpackb(msg, raw=False)
-        return resp
-    
+
     def cross_encode(self,texts_0,texts_1):
         cmd = {"cmd": "GET_CROSS_SCORES", "texts_0": texts_0,"texts_1": texts_1}
         self.socket.send(msgpack.packb(cmd, use_bin_type=True))
@@ -70,3 +64,14 @@ class LLMClient:
         self.socket.send(msgpack.packb(cmd, use_bin_type=True))
         self.socket.recv()
         return True
+
+    def get_embeddings(self, inputs, bgem3_path=None):
+        if isinstance(inputs, str):
+            inputs = [inputs]
+        cmd = {'cmd': 'GET_EMBEDDINGS', 'texts': inputs}
+        if bgem3_path:
+            cmd['embedding_path'] = bgem3_path
+        self.socket.send(msgpack.packb(cmd, use_bin_type=True))
+        msg = self.socket.recv()
+        resp = msgpack.unpackb(msg, raw=False)
+        return resp

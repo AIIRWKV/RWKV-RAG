@@ -146,25 +146,18 @@ class LLMService:
                           ):
         if base_model_path:
             self.reload_base_model(base_model_path)
-        # if not state_file:
-        #     state_file = self.config.get('state_path')
-        # if state_file:
-        #     states_value = self.load_state_tuning(state_file)
-        # else:
-        #     states_value = None
         states_value = None
         gen_args = PIPELINE_ARGS(temperature=temperature, top_p=top_p, top_k=top_k,  # top_k = 0 then ignore
                                  alpha_frequency=alpha_frequency,
                                  alpha_presence=alpha_presence,
                                  alpha_decay=alpha_decay,  # gradually decay the penalty
                                  token_ban=[0],  # ban the generation of some tokens
-                                 token_stop=[0, 1],  # stop generation whenever you see any token here
+                                 token_stop=[3319, 145, 150],  # stop generation whenever you see any token here
                                  chunk_len=256)
         if not template_prompt:
-            ctx = f'Instruction: {instruction}\nInput: {input_text}\n\nResponse:'
+            ctx = f'😺: {instruction}\n\n📋: {input_text}\n\n🤖:'
         else:
             ctx = template_prompt
-        print(ctx)
         try:
             pipeline = PIPELINE(self.model, "rwkv_vocab_v20230424")
             output = pipeline.generate(ctx, token_count=1200, args=gen_args, state=states_value)
@@ -186,7 +179,7 @@ class LLMServiceWorker(AbstractServiceWorker):
 
     def cmd_get_embeddings(self, cmd: dict)->List[List[float]]:
         texts = cmd.get("texts")
-        bgem3_path = cmd.get("bgem3_path")
+        bgem3_path = cmd.get("embedding_path")
         value = self.llm_service.get_embeddings(texts, bgem3_path)
         return value
 

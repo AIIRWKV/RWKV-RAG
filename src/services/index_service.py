@@ -42,6 +42,9 @@ class IndexServiceWorker(AbstractServiceWorker):
     def cmd_index_texts(self, cmd: dict):
         return self.vectordb_manager.add(cmd)
 
+    def cmd_has_collection(self, cmd: dict):
+        collection_name = cmd['collection_name']
+        return self.vectordb_manager.has_collection(collection_name)
     def cmd_show_collections(self, cmd: dict):
         return self.vectordb_manager.show_collections(cmd)
 

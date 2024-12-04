@@ -29,8 +29,15 @@ class IndexClient:
         resp = msgpack.unpackb(msg, raw=False)
         return resp
 
-    def show_collection(self):
+    def show_collections(self):
         cmd = {"cmd":'SHOW_COLLECTIONS'}
+        self.socket.send(msgpack.packb(cmd, use_bin_type=True))
+        msg = self.socket.recv()
+        resp = msgpack.unpackb(msg, raw=False)
+        return resp
+
+    def has_collection(self):
+        cmd = {"cmd":'HAS_COLLECTION'}
         self.socket.send(msgpack.packb(cmd, use_bin_type=True))
         msg = self.socket.recv()
         resp = msgpack.unpackb(msg, raw=False)

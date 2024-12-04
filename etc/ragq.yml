@@ -10,4 +10,3 @@ index:
     port: 7783
 base:
   knowledge_base_path: /root/data
-  sqlite_db_path: /root/data/files_services.db

@@ -92,17 +92,6 @@ class IndexServiceConfig(metaclass=SingletonMeta):
         if not (isinstance(vectordb_port, int) or (isinstance(vectordb_port, str) and vectordb_port.isdigit())):
             raise ValueError(f"vectordb_port is required for index service")
 
-# class TuningServiceConfig(metaclass=SingletonMeta):
-#     def __init__(self, config_file):
-#         if not os.path.exists(config_file):
-#             raise FileNotFoundError(f"Config file {config_file} not found")
-#         with open(config_file) as f:
-#             try:
-#                 self.config = yaml.safe_load(f)
-#             except yaml.YAMLError as exc:
-#                 raise ValueError(f"Invalid config file {config_file}")
-#         self.config_file_path = config_file
-
 
 class ClientConfig(metaclass=SingletonMeta):
     def __init__(self, config_file, validate=True):
@@ -121,12 +110,6 @@ class ClientConfig(metaclass=SingletonMeta):
         Validate Configuration File
         """
         base_setting = self.config.get('base', {})
-        sqlite_db_path = base_setting.get("sqlite_db_path", '')
-        if not sqlite_db_path:
-            raise ValueError(f"sqlite_db_path is required")
-        sqlite_db_path_dir = os.path.dirname(sqlite_db_path)
-        if not os.path.exists(sqlite_db_path_dir):
-            os.makedirs(sqlite_db_path_dir)
         knowledge_base_path = base_setting.get("knowledge_base_path", '')
         if knowledge_base_path:
             if not os.path.exists(knowledge_base_path):
